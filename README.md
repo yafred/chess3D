@@ -1,0 +1,4 @@
+pnpm install 
+
+npx vite
+
