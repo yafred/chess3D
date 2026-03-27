@@ -1,14 +1,30 @@
 import * as THREE from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { fenToScene } from './fen';
 
 const scene = new THREE.Scene();
+scene.visible = false;
 scene.background = new THREE.Color(0x202020);
 
 const loader = new GLTFLoader();
+const materials = new Map();
+const pieces = new Map();
 loader.load('/scene.glb', (gltf) => {
   scene.add(gltf.scene);
   gltf.scene.scale.set(1, 1, 1);
+  scene.traverse((obj) => {
+    if (obj.isMesh && ['King', 'Queen', 'Rook', 'Bishop', 'Knight', 'Pawn'].includes(obj.name)) {
+      obj.visible = false; 
+      pieces.set(obj.name, obj);
+      if (obj.material && !Array.isArray(obj.material) && ['white piece', 'black piece'].includes(obj.material.name)) {
+        materials.set(obj.material.name, obj.material);
+      }
+    }
+  });
+
+  fenToScene('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR', scene, pieces, materials);
+  scene.visible = true;
 });
 
 // Camera
@@ -30,19 +46,19 @@ const light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(10, 10, 10);
 scene.add(light);
 
-
-// Animate
-function animate() {
-  requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene, camera);
-}
-
-animate();
-
 // Resize
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
+// Main loop
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+
