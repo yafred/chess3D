@@ -10,3 +10,4 @@
 ## Exporting the model to .glb
 
 * Transform +Y Up
+* Apply modifiers
