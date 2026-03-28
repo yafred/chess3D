@@ -45,6 +45,9 @@ controls.dampingFactor = 0.05;
 const light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(10, 10, 10);
 scene.add(light);
+const light2 = new THREE.DirectionalLight(0xffffff, 1);
+light2.position.set(-10, 10, -10);
+scene.add(light2);
 
 // Resize
 window.addEventListener("resize", () => {
