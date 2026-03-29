@@ -259,6 +259,25 @@ export function setupPieceInteraction({
       return;
     }
 
+    // If a piece is pinned, clicking another piece should act as a click target,
+    // not start a drag on the clicked piece.
+    if (selectedPiece && piece !== selectedPiece) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (isOppositeColor(selectedPiece, piece)) {
+        const targetX = piece.position.x;
+        const targetZ = piece.position.z;
+        scene.remove(piece);
+        selectedPiece.position.set(targetX, selectedPiece.position.y, targetZ);
+        clearSelection();
+        return;
+      }
+
+      selectPiece(piece);
+      return;
+    }
+
     event.preventDefault();
     event.stopPropagation();
 
