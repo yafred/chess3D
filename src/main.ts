@@ -21,9 +21,22 @@ scene.background = new THREE.Color(0x404040);
 const loader = new GLTFLoader();
 const materials = new Map();
 const pieces = new Map();
+const sceneRoot = document.getElementById('chess3D-container');
+
+if (!(sceneRoot instanceof HTMLDivElement)) {
+  throw new Error('Missing chess3D-container container.');
+}
+
 const sceneAssetUrl = `${import.meta.env.BASE_URL}scene.glb`;
 const defaultFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 let pendingFen: string | null = null;
+
+function getSceneRootSize() {
+  return {
+    width: sceneRoot.clientWidth || window.innerWidth,
+    height: sceneRoot.clientHeight || window.innerHeight,
+  };
+}
 
 function displayFenInScene(fen: string) {
   if (pieces.size === 0) {
@@ -63,15 +76,16 @@ loader.load(sceneAssetUrl, (gltf) => {
 });
 
 // Camera
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+const { width: initialWidth, height: initialHeight } = getSceneRootSize();
+const camera = new THREE.PerspectiveCamera(45, initialWidth / initialHeight, 0.1, 100);
 camera.position.set(0, 15, 8);
 camera.zoom = 1.5;
 camera.updateProjectionMatrix();
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+renderer.setSize(initialWidth, initialHeight);
+sceneRoot.appendChild(renderer.domElement);
 
 // Controls
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -93,9 +107,10 @@ scene.add(light2);
 
 // Resize
 window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+  const { width, height } = getSceneRootSize();
+  camera.aspect = width / height;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(width, height);
 });
 
 const hoverController = createPieceHoverController(scene, camera, renderer.domElement);
