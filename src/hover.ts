@@ -38,6 +38,8 @@ export function createPieceHoverController(
 ): PieceHoverController {
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
+  const boardPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  const boardPoint = new THREE.Vector3();
   let hovered: THREE.Mesh | null = null;
   const squareHighlight = new THREE.Mesh(
     new THREE.PlaneGeometry(1, 1),
@@ -63,6 +65,7 @@ export function createPieceHoverController(
     },
     update() {
       raycaster.setFromCamera(mouse, camera);
+
       const hits = raycaster.intersectObjects(scene.children, true);
 
       let hitPiece: THREE.Mesh | null = null;
@@ -71,6 +74,21 @@ export function createPieceHoverController(
         if (candidate) {
           hitPiece = candidate;
           break;
+        }
+      }
+
+      if (hitPiece) {
+        squareHighlight.position.x = hitPiece.position.x;
+        squareHighlight.position.z = hitPiece.position.z;
+        squareHighlight.visible = true;
+      } else {
+        const hasBoardIntersection = raycaster.ray.intersectPlane(boardPlane, boardPoint) !== null;
+        if (hasBoardIntersection && Math.abs(boardPoint.x) <= 4 && Math.abs(boardPoint.z) <= 4) {
+          squareHighlight.position.x = Math.round(boardPoint.x + 3.5) - 3.5;
+          squareHighlight.position.z = Math.round(boardPoint.z + 3.5) - 3.5;
+          squareHighlight.visible = true;
+        } else {
+          squareHighlight.visible = false;
         }
       }
 
@@ -83,9 +101,6 @@ export function createPieceHoverController(
       }
 
       if (!hitPiece || hovered === hitPiece) {
-        if (!hitPiece) {
-          squareHighlight.visible = false;
-        }
         return;
       }
 
@@ -97,10 +112,6 @@ export function createPieceHoverController(
       hovered = hitPiece;
       hovered.userData.originalColor = hitMaterial.color.clone();
       hitMaterial.color.copy(hovered.userData.originalColor).multiplyScalar(0.5);
-
-      squareHighlight.position.x = hovered.position.x;
-      squareHighlight.position.z = hovered.position.z;
-      squareHighlight.visible = true;
     },
   };
 }
