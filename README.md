@@ -4,7 +4,7 @@
 npm install 
 ```
 
-### Usage
+## Usage
 
 ```sh
 npx vite
