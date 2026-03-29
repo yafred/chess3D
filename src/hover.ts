@@ -39,6 +39,21 @@ export function createPieceHoverController(
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
   let hovered: THREE.Mesh | null = null;
+  const squareHighlight = new THREE.Mesh(
+    new THREE.PlaneGeometry(1, 1),
+    new THREE.MeshBasicMaterial({
+      color: 0xf7e27f,
+      transparent: true,
+      opacity: 0.35,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+  );
+  squareHighlight.rotation.x = -Math.PI / 2;
+  squareHighlight.position.y = 0.01;
+  squareHighlight.visible = false;
+  squareHighlight.renderOrder = 10;
+  scene.add(squareHighlight);
 
   return {
     updateFromPointerEvent(event: PointerEvent) {
@@ -68,6 +83,9 @@ export function createPieceHoverController(
       }
 
       if (!hitPiece || hovered === hitPiece) {
+        if (!hitPiece) {
+          squareHighlight.visible = false;
+        }
         return;
       }
 
@@ -79,6 +97,10 @@ export function createPieceHoverController(
       hovered = hitPiece;
       hovered.userData.originalColor = hitMaterial.color.clone();
       hitMaterial.color.copy(hovered.userData.originalColor).multiplyScalar(0.5);
+
+      squareHighlight.position.x = hovered.position.x;
+      squareHighlight.position.z = hovered.position.z;
+      squareHighlight.visible = true;
     },
   };
 }
