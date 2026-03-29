@@ -10,6 +10,7 @@ import { setupPieceInteraction } from './pieceInteraction';
 declare global {
   interface Window {
     displayFen: (fen: string) => void;
+    setFov: (fov: number) => void;
   }
 }
 
@@ -36,6 +37,13 @@ function displayFenInScene(fen: string) {
 }
 
 window.displayFen = displayFenInScene;
+
+function setFov(fov: number) {
+  camera.fov = fov;
+  camera.updateProjectionMatrix();
+}
+
+window.setFov = setFov;
 
 loader.load(sceneAssetUrl, (gltf) => {
   scene.add(gltf.scene);
