@@ -17,6 +17,7 @@ scene.background = new THREE.Color(0x404040);
 const loader = new GLTFLoader();
 const materials = new Map();
 const pieces = new Map();
+const sceneAssetUrl = `${import.meta.env.BASE_URL}scene.glb`;
 const defaultFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 let pendingFen: string | null = null;
 
@@ -33,7 +34,7 @@ function displayFenInScene(fen: string) {
 
 window.displayFen = displayFenInScene;
 
-loader.load('/scene.glb', (gltf) => {
+loader.load(sceneAssetUrl, (gltf) => {
   scene.add(gltf.scene);
   gltf.scene.scale.set(1, 1, 1);
   scene.traverse((obj) => {
