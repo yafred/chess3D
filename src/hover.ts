@@ -5,6 +5,7 @@ const pieceCodes = new Set(['K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 'r', 'b', 'n
 export type PieceHoverController = {
   updateFromPointerEvent: (event: PointerEvent) => void;
   update: () => void;
+  setEnabled: (enabled: boolean) => void;
 };
 
 function getColorMaterial(mesh: THREE.Mesh): (THREE.Material & { color: THREE.Color }) | null {
@@ -55,6 +56,7 @@ export function createPieceHoverController(
   const mouse = new THREE.Vector2();
   const boardPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   const boardPoint = new THREE.Vector3();
+  let enabled = true;
   let hovered: THREE.Mesh | null = null;
   const squareHighlight = new THREE.Mesh(
     new THREE.PlaneGeometry(1, 1),
@@ -72,13 +74,34 @@ export function createPieceHoverController(
   squareHighlight.renderOrder = 10;
   scene.add(squareHighlight);
 
+  function clearHoveredState() {
+    if (hovered) {
+      const hoveredMaterial = getColorMaterial(hovered);
+      if (hoveredMaterial && hovered.userData.originalColor instanceof THREE.Color) {
+        hoveredMaterial.color.copy(hovered.userData.originalColor);
+      }
+      hovered = null;
+    }
+    squareHighlight.visible = false;
+  }
+
   return {
+    setEnabled(nextEnabled: boolean) {
+      enabled = nextEnabled;
+      if (!enabled) {
+        clearHoveredState();
+      }
+    },
     updateFromPointerEvent(event: PointerEvent) {
       const rect = domElement.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
     },
     update() {
+      if (!enabled) {
+        return;
+      }
+
       raycaster.setFromCamera(mouse, camera);
       let targetPiece: THREE.Mesh | null = null;
       let hasHighlightedSquare = false;
@@ -114,11 +137,7 @@ export function createPieceHoverController(
       }
 
       if (hovered && hovered !== targetPiece) {
-        const hoveredMaterial = getColorMaterial(hovered);
-        if (hoveredMaterial && hovered.userData.originalColor instanceof THREE.Color) {
-          hoveredMaterial.color.copy(hovered.userData.originalColor);
-        }
-        hovered = null;
+        clearHoveredState();
       }
 
       if (!hasHighlightedSquare || !targetPiece || hovered === targetPiece) {

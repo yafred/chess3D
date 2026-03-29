@@ -64,6 +64,35 @@ window.addEventListener("resize", () => {
 
 const hoverController = createPieceHoverController(scene, camera, renderer.domElement);
 window.addEventListener('pointermove', hoverController.updateFromPointerEvent);
+let activeMouseButton: number | null = null;
+let hoverDisabledForOrbit = false;
+
+renderer.domElement.addEventListener('pointerdown', (event) => {
+  activeMouseButton = event.pointerType === 'mouse' ? event.button : null;
+});
+
+renderer.domElement.addEventListener('pointerup', () => {
+  activeMouseButton = null;
+});
+
+renderer.domElement.addEventListener('pointercancel', () => {
+  activeMouseButton = null;
+});
+
+controls.addEventListener('start', () => {
+  if (activeMouseButton === 0) {
+    hoverController.setEnabled(false);
+    hoverDisabledForOrbit = true;
+  }
+});
+
+controls.addEventListener('end', () => {
+  activeMouseButton = null;
+  if (hoverDisabledForOrbit) {
+    hoverController.setEnabled(true);
+    hoverDisabledForOrbit = false;
+  }
+});
 
 
 
