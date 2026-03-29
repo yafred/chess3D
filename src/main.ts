@@ -61,8 +61,75 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+// Hover
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let hovered: THREE.Mesh | null = null;
+const pieceCodes = new Set(['K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 'r', 'b', 'n', 'p']);
+
+function getColorMaterial(mesh: THREE.Mesh): (THREE.Material & { color: THREE.Color }) | null {
+  const material = mesh.material;
+  if (Array.isArray(material)) {
+    return null;
+  }
+
+  const candidate = material as THREE.Material & { color?: unknown };
+  return candidate.color instanceof THREE.Color
+    ? (material as THREE.Material & { color: THREE.Color })
+    : null;
+}
+
+function getPieceMeshFromObject(object: THREE.Object3D | null): THREE.Mesh | null {
+  let current: THREE.Object3D | null = object;
+  while (current) {
+    if (current instanceof THREE.Mesh && pieceCodes.has(current.name)) {
+      return current;
+    }
+    current = current.parent;
+  }
+
+  return null;
+}
+
+window.addEventListener('pointermove', (event) => {
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+});
+
+
+
 // Main loop
 function animate() {
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(scene.children, true);
+  const hitPiece = hits
+    .map((intersection) => getPieceMeshFromObject(intersection.object))
+    .find((mesh): mesh is THREE.Mesh => mesh !== null) ?? null;
+
+  if (hovered && hovered !== hitPiece) {
+    const hoveredMaterial = getColorMaterial(hovered);
+    if (hoveredMaterial && hovered.userData.originalColor instanceof THREE.Color) {
+      hoveredMaterial.color.copy(hovered.userData.originalColor);
+    }
+    hovered = null;
+  }
+
+  if (hitPiece) {
+    const hitMaterial = getColorMaterial(hitPiece);
+    if (!hitMaterial) {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+      return;
+    }
+
+    if (hovered !== hitPiece) {
+      hovered = hitPiece;
+      hovered.userData.originalColor = hitMaterial.color.clone();
+      hitMaterial.color.copy(hovered.userData.originalColor).multiplyScalar(0.5);
+    }
+  }
+
   requestAnimationFrame(animate);
   controls.update();
   renderer.render(scene, camera);
