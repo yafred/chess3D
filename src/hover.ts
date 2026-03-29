@@ -31,6 +31,21 @@ function getPieceMeshFromObject(object: THREE.Object3D | null): THREE.Mesh | nul
   return null;
 }
 
+function getPieceAtSquare(scene: THREE.Scene, x: number, z: number): THREE.Mesh | null {
+  let pieceAtSquare: THREE.Mesh | null = null;
+  scene.traverse((obj) => {
+    if (pieceAtSquare || !(obj instanceof THREE.Mesh) || !pieceCodes.has(obj.name)) {
+      return;
+    }
+
+    if (Math.abs(obj.position.x - x) < 0.001 && Math.abs(obj.position.z - z) < 0.001) {
+      pieceAtSquare = obj;
+    }
+  });
+
+  return pieceAtSquare;
+}
+
 export function createPieceHoverController(
   scene: THREE.Scene,
   camera: THREE.Camera,
@@ -65,6 +80,8 @@ export function createPieceHoverController(
     },
     update() {
       raycaster.setFromCamera(mouse, camera);
+      let targetPiece: THREE.Mesh | null = null;
+      let hasHighlightedSquare = false;
 
       const hits = raycaster.intersectObjects(scene.children, true);
 
@@ -81,18 +98,22 @@ export function createPieceHoverController(
         squareHighlight.position.x = hitPiece.position.x;
         squareHighlight.position.z = hitPiece.position.z;
         squareHighlight.visible = true;
+        hasHighlightedSquare = true;
+        targetPiece = hitPiece;
       } else {
         const hasBoardIntersection = raycaster.ray.intersectPlane(boardPlane, boardPoint) !== null;
         if (hasBoardIntersection && Math.abs(boardPoint.x) <= 4 && Math.abs(boardPoint.z) <= 4) {
           squareHighlight.position.x = Math.round(boardPoint.x + 3.5) - 3.5;
           squareHighlight.position.z = Math.round(boardPoint.z + 3.5) - 3.5;
           squareHighlight.visible = true;
+          hasHighlightedSquare = true;
+          targetPiece = getPieceAtSquare(scene, squareHighlight.position.x, squareHighlight.position.z);
         } else {
           squareHighlight.visible = false;
         }
       }
 
-      if (hovered && hovered !== hitPiece) {
+      if (hovered && hovered !== targetPiece) {
         const hoveredMaterial = getColorMaterial(hovered);
         if (hoveredMaterial && hovered.userData.originalColor instanceof THREE.Color) {
           hoveredMaterial.color.copy(hovered.userData.originalColor);
@@ -100,16 +121,16 @@ export function createPieceHoverController(
         hovered = null;
       }
 
-      if (!hitPiece || hovered === hitPiece) {
+      if (!hasHighlightedSquare || !targetPiece || hovered === targetPiece) {
         return;
       }
 
-      const hitMaterial = getColorMaterial(hitPiece);
+      const hitMaterial = getColorMaterial(targetPiece);
       if (!hitMaterial) {
         return;
       }
 
-      hovered = hitPiece;
+      hovered = targetPiece;
       hovered.userData.originalColor = hitMaterial.color.clone();
       hitMaterial.color.copy(hovered.userData.originalColor).multiplyScalar(0.5);
     },
