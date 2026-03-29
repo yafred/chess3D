@@ -1,5 +1,8 @@
 ## Creating the model
 
+(The pieces were created using this Polygon Runway [tutorial](https://www.youtube.com/watch?v=Iu8jV7g9Oqk) ...)
+
+The model needs to follow these rules:
 * Board is centered on world origin
 * Right: +X, front: -Y, up: +Z
 * Square size is 1 blender unit (1 meter)
