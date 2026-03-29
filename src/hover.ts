@@ -1,11 +1,17 @@
 import * as THREE from 'three';
 
 const pieceCodes = new Set(['K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 'r', 'b', 'n', 'p']);
+const hoverTintScalar = 0.5;
+const pinnedTintScalar = 0.7;
+
+type HighlightMode = 'hover' | 'pinned';
 
 export type PieceHoverController = {
   updateFromPointerEvent: (event: PointerEvent) => void;
   update: () => void;
   setEnabled: (enabled: boolean) => void;
+  setPinnedPiece: (piece: THREE.Mesh | null) => void;
+  setIgnoredPiece: (piece: THREE.Mesh | null) => void;
 };
 
 function getColorMaterial(mesh: THREE.Mesh): (THREE.Material & { color: THREE.Color }) | null {
@@ -59,6 +65,9 @@ export function createPieceHoverController(
   let enabled = true;
   let hasPointerPosition = false;
   let hovered: THREE.Mesh | null = null;
+  let hoveredMode: HighlightMode | null = null;
+  let pinnedPiece: THREE.Mesh | null = null;
+  let ignoredPiece: THREE.Mesh | null = null;
   const squareHighlight = new THREE.Mesh(
     new THREE.PlaneGeometry(1, 1),
     new THREE.MeshBasicMaterial({
@@ -82,16 +91,51 @@ export function createPieceHoverController(
         hoveredMaterial.color.copy(hovered.userData.originalColor);
       }
       hovered = null;
+      hoveredMode = null;
     }
     squareHighlight.visible = false;
+  }
+
+  function highlightPiece(piece: THREE.Mesh, mode: HighlightMode) {
+    if (hovered === piece && hoveredMode === mode) {
+      return;
+    }
+
+    clearHoveredState();
+    const material = getColorMaterial(piece);
+    if (!material) {
+      return;
+    }
+
+    hovered = piece;
+    hoveredMode = mode;
+    hovered.userData.originalColor = material.color.clone();
+    const tintScalar = mode === 'pinned' ? pinnedTintScalar : hoverTintScalar;
+    material.color.copy(hovered.userData.originalColor).multiplyScalar(tintScalar);
   }
 
   return {
     setEnabled(nextEnabled: boolean) {
       enabled = nextEnabled;
       if (!enabled) {
-        clearHoveredState();
+        if (pinnedPiece && hovered === pinnedPiece) {
+          squareHighlight.visible = false;
+        } else {
+          clearHoveredState();
+        }
       }
+    },
+    setPinnedPiece(piece: THREE.Mesh | null) {
+      pinnedPiece = piece;
+      if (!pinnedPiece) {
+        clearHoveredState();
+        return;
+      }
+
+      highlightPiece(pinnedPiece, 'pinned');
+    },
+    setIgnoredPiece(piece: THREE.Mesh | null) {
+      ignoredPiece = piece;
     },
     updateFromPointerEvent(event: PointerEvent) {
       const rect = domElement.getBoundingClientRect();
@@ -110,6 +154,11 @@ export function createPieceHoverController(
         return;
       }
 
+      if (pinnedPiece && !pinnedPiece.parent) {
+        pinnedPiece = null;
+        clearHoveredState();
+      }
+
       raycaster.setFromCamera(mouse, camera);
       let targetPiece: THREE.Mesh | null = null;
       let hasHighlightedSquare = false;
@@ -119,6 +168,9 @@ export function createPieceHoverController(
       let hitPiece: THREE.Mesh | null = null;
       for (const intersection of hits) {
         const candidate = getPieceMeshFromObject(intersection.object);
+        if (candidate && ignoredPiece && candidate === ignoredPiece) {
+          continue;
+        }
         if (candidate) {
           hitPiece = candidate;
           break;
@@ -144,6 +196,11 @@ export function createPieceHoverController(
         }
       }
 
+      if (pinnedPiece) {
+        highlightPiece(pinnedPiece, 'pinned');
+        return;
+      }
+
       if (hovered && hovered !== targetPiece) {
         clearHoveredState();
       }
@@ -152,14 +209,7 @@ export function createPieceHoverController(
         return;
       }
 
-      const hitMaterial = getColorMaterial(targetPiece);
-      if (!hitMaterial) {
-        return;
-      }
-
-      hovered = targetPiece;
-      hovered.userData.originalColor = hitMaterial.color.clone();
-      hitMaterial.color.copy(hovered.userData.originalColor).multiplyScalar(0.5);
+      highlightPiece(targetPiece, 'hover');
     },
   };
 }

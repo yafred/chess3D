@@ -8,6 +8,9 @@ type DragState = {
   piece: THREE.Mesh;
   pointerId: number;
   startPosition: THREE.Vector3;
+  startClientX: number;
+  startClientY: number;
+  hasMoved: boolean;
 };
 
 type SetupPieceInteractionParams = {
@@ -29,8 +32,10 @@ export function setupPieceInteraction({
   const pointerNdc = new THREE.Vector2();
   const boardPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   const boardPoint = new THREE.Vector3();
+  const dragThresholdPx = 4;
 
   let dragState: DragState | null = null;
+  let selectedPiece: THREE.Mesh | null = null;
   let activeMouseButton: number | null = null;
   let hoverDisabledForOrbit = false;
 
@@ -98,6 +103,74 @@ export function setupPieceInteraction({
     return null;
   }
 
+  function clearSelection() {
+    selectedPiece = null;
+    hoverController.setPinnedPiece(null);
+  }
+
+  function selectPiece(piece: THREE.Mesh) {
+    selectedPiece = piece;
+    hoverController.setPinnedPiece(piece);
+  }
+
+  function applyMoveOrCapture(movingPiece: THREE.Mesh, targetX: number, targetZ: number): boolean {
+    const occupyingPiece = getPieceAtSquare(targetX, targetZ, movingPiece);
+    if (!occupyingPiece) {
+      movingPiece.position.set(targetX, movingPiece.position.y, targetZ);
+      return true;
+    }
+
+    if (!isOppositeColor(movingPiece, occupyingPiece)) {
+      return false;
+    }
+
+    scene.remove(occupyingPiece);
+    movingPiece.position.set(targetX, movingPiece.position.y, targetZ);
+    return true;
+  }
+
+  function handleSelectedPieceClickTarget(event: PointerEvent): boolean {
+    if (!selectedPiece || event.button !== 0) {
+      return false;
+    }
+
+    updatePointerNdc(event);
+    pointerRaycaster.setFromCamera(pointerNdc, camera);
+
+    const targetPiece = getPieceUnderPointer(event);
+    if (targetPiece) {
+      if (targetPiece === selectedPiece) {
+        clearSelection();
+        return true;
+      }
+
+      if (isOppositeColor(selectedPiece, targetPiece)) {
+        const targetX = targetPiece.position.x;
+        const targetZ = targetPiece.position.z;
+        scene.remove(targetPiece);
+        selectedPiece.position.set(targetX, selectedPiece.position.y, targetZ);
+        clearSelection();
+        return true;
+      }
+
+      selectPiece(targetPiece);
+      return true;
+    }
+
+    const hasBoardIntersection = pointerRaycaster.ray.intersectPlane(boardPlane, boardPoint) !== null;
+    if (!hasBoardIntersection || !isWithinBoard(boardPoint.x, boardPoint.z)) {
+      return false;
+    }
+
+    const targetX = getSquareCoordinate(boardPoint.x);
+    const targetZ = getSquareCoordinate(boardPoint.z);
+    if (applyMoveOrCapture(selectedPiece, targetX, targetZ)) {
+      clearSelection();
+    }
+
+    return true;
+  }
+
   function dragPieceToPointer(event: PointerEvent) {
     if (!dragState) {
       return;
@@ -122,6 +195,27 @@ export function setupPieceInteraction({
 
     const { piece, startPosition } = dragState;
 
+    if (!dragState.hasMoved) {
+      piece.position.copy(startPosition);
+      piece.position.y = startPosition.y;
+      dragState = null;
+      hoverController.setIgnoredPiece(null);
+      controls.enabled = true;
+      hoverController.setEnabled(true);
+
+      if (selectedPiece === piece) {
+        clearSelection();
+      } else {
+        selectPiece(piece);
+      }
+
+      if (renderer.domElement.hasPointerCapture(event.pointerId)) {
+        renderer.domElement.releasePointerCapture(event.pointerId);
+      }
+
+      return;
+    }
+
     updatePointerNdc(event);
     pointerRaycaster.setFromCamera(pointerNdc, camera);
     const hasBoardIntersection = pointerRaycaster.ray.intersectPlane(boardPlane, boardPoint) !== null;
@@ -130,16 +224,7 @@ export function setupPieceInteraction({
     if (hasBoardIntersection && isWithinBoard(boardPoint.x, boardPoint.z)) {
       const targetX = getSquareCoordinate(boardPoint.x);
       const targetZ = getSquareCoordinate(boardPoint.z);
-      const occupyingPiece = getPieceAtSquare(targetX, targetZ, piece);
-
-      if (!occupyingPiece) {
-        piece.position.set(targetX, startPosition.y, targetZ);
-        dropApplied = true;
-      } else if (isOppositeColor(piece, occupyingPiece)) {
-        scene.remove(occupyingPiece);
-        piece.position.set(targetX, startPosition.y, targetZ);
-        dropApplied = true;
-      }
+      dropApplied = applyMoveOrCapture(piece, targetX, targetZ);
     }
 
     if (!dropApplied) {
@@ -147,7 +232,9 @@ export function setupPieceInteraction({
     }
 
     piece.position.y = startPosition.y;
+    clearSelection();
     dragState = null;
+    hoverController.setIgnoredPiece(null);
     controls.enabled = true;
     hoverController.setEnabled(true);
 
@@ -163,6 +250,10 @@ export function setupPieceInteraction({
 
     const piece = getPieceUnderPointer(event);
     if (!piece) {
+      if (selectedPiece) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       return;
     }
 
@@ -173,11 +264,14 @@ export function setupPieceInteraction({
       piece,
       pointerId: event.pointerId,
       startPosition: piece.position.clone(),
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      hasMoved: false,
     };
     controls.enabled = false;
-    hoverController.setEnabled(false);
+    hoverController.setIgnoredPiece(piece);
+    hoverController.updateFromPointerEvent(event);
     renderer.domElement.setPointerCapture(event.pointerId);
-    dragPieceToPointer(event);
   }, { capture: true });
 
   renderer.domElement.addEventListener('pointermove', (event) => {
@@ -185,11 +279,32 @@ export function setupPieceInteraction({
       return;
     }
 
+    hoverController.updateFromPointerEvent(event);
+
+    if (!dragState.hasMoved) {
+      const deltaX = event.clientX - dragState.startClientX;
+      const deltaY = event.clientY - dragState.startClientY;
+      const movement = Math.hypot(deltaX, deltaY);
+      if (movement < dragThresholdPx) {
+        return;
+      }
+
+      dragState.hasMoved = true;
+      if (selectedPiece === dragState.piece) {
+        clearSelection();
+      }
+    }
+
     dragPieceToPointer(event);
   });
 
   renderer.domElement.addEventListener('pointerup', (event) => {
-    finishDrag(event);
+    if (dragState && event.pointerId === dragState.pointerId) {
+      finishDrag(event);
+      return;
+    }
+
+    handleSelectedPieceClickTarget(event);
   });
 
   renderer.domElement.addEventListener('pointercancel', (event) => {
