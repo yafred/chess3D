@@ -8,7 +8,10 @@ The model needs to follow these rules:
 * Square size is 1 blender unit (1 meter)
 * If the board has some thickness, Z location of the top must be 0
 * Local origin of the pieces is the center of their base. This allows to place them on the board.
+* There must be one piece of each type, with following names: 'King', 'Queen', 'Rook', 'Bishop', 'Knight', 'Pawn'
+* Use both colors. Material names must be: 'white piece', 'black piece'
 
+![Screenshot](blender-scene.png)
 
 ## Exporting the model to .glb
 
