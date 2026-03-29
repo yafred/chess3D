@@ -42,11 +42,16 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 
 // Lighting
-const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.set(10, 10, 10);
+const ambientLight = new THREE.AmbientLight( 0x404040, 5 ); // soft white light
+scene.add( ambientLight );
+
+const light = new THREE.DirectionalLight(0xffffff, .5);
+light.position.set(0, 1, 1);
+light.target.position.set(0, 0, 0);
 scene.add(light);
-const light2 = new THREE.DirectionalLight(0xffffff, 1);
-light2.position.set(-10, 10, -10);
+const light2 = new THREE.DirectionalLight(0xffffff, .5);
+light2.position.set(0, 1, -1);
+light2.target.position.set(0, 0, 0);
 scene.add(light2);
 
 // Resize
