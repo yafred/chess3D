@@ -21,6 +21,7 @@ export function fenToScene(fen: string, scene: THREE.Scene, pieces: Map<string, 
                 if (pieceMesh) {
                     const clone = pieceMesh.clone();
                     clone.position.set(c - 3.5, 0, r - 3.5);
+                    clone.name = `${char}`;  // Name the piece for later reference (e.g., "P" for white pawn, "p" for black pawn)
                     // Reminder: X: horizontal positive to the right, Y: vertical positive up, Z: horizontal positive towards the camera    
                     const materialName = char === char.toUpperCase() ? 'white piece' : 'black piece';
                     const material = materials.get(materialName);

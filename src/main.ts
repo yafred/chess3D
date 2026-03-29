@@ -5,7 +5,7 @@ import { fenToScene } from './fen';
 
 const scene = new THREE.Scene();
 scene.visible = false;
-scene.background = new THREE.Color(0x202020);
+scene.background = new THREE.Color(0x404040);
 
 const loader = new GLTFLoader();
 const materials = new Map();
@@ -14,7 +14,7 @@ loader.load('/scene.glb', (gltf) => {
   scene.add(gltf.scene);
   gltf.scene.scale.set(1, 1, 1);
   scene.traverse((obj) => {
-    if (obj.isMesh && ['King', 'Queen', 'Rook', 'Bishop', 'Knight', 'Pawn'].includes(obj.name)) {
+    if (obj instanceof THREE.Mesh && ['King', 'Queen', 'Rook', 'Bishop', 'Knight', 'Pawn'].includes(obj.name)) {
       obj.visible = false; 
       pieces.set(obj.name, obj);
       if (obj.material && !Array.isArray(obj.material) && ['white piece', 'black piece'].includes(obj.material.name)) {
@@ -42,7 +42,7 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 
 // Lighting
-const ambientLight = new THREE.AmbientLight( 0x404040, 5 ); // soft white light
+const ambientLight = new THREE.HemisphereLight(0xffffff, 0x444444, 2); 
 scene.add( ambientLight );
 
 const light = new THREE.DirectionalLight(0xffffff, .5);
