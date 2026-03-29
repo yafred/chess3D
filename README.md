@@ -1,4 +1,5 @@
 ## Demo
+Chess3D is my lab to experiment building and interacting with a 3D model on a web page using [Three.js](https://threejs.org/)
 You can see current state [here](https://yafred.github.io/chess3D/)
 
 ## Installation
