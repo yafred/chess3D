@@ -199,6 +199,7 @@ export function setupPieceInteraction({
       piece.position.copy(startPosition);
       piece.position.y = startPosition.y;
       dragState = null;
+      hoverController.setDraggedPiece(null);
       hoverController.setIgnoredPiece(null);
       controls.enabled = true;
       hoverController.setEnabled(true);
@@ -232,6 +233,7 @@ export function setupPieceInteraction({
     }
 
     piece.position.y = startPosition.y;
+    hoverController.setDraggedPiece(null);
     clearSelection();
     dragState = null;
     hoverController.setIgnoredPiece(null);
@@ -293,6 +295,7 @@ export function setupPieceInteraction({
       if (selectedPiece === dragState.piece) {
         clearSelection();
       }
+      hoverController.setDraggedPiece(dragState.piece);
     }
 
     dragPieceToPointer(event);

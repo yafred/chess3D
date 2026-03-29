@@ -4,12 +4,13 @@ const pieceCodes = new Set(['K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 'r', 'b', 'n
 const hoverHighlightColor = new THREE.Color(0x8fd3ff);
 const pinnedHighlightColor = new THREE.Color(0x2f6fff);
 
-type HighlightMode = 'hover' | 'pinned';
+type HighlightMode = 'hover' | 'pinned' | 'drag';
 
 export type PieceHoverController = {
   updateFromPointerEvent: (event: PointerEvent) => void;
   update: () => void;
   setEnabled: (enabled: boolean) => void;
+  setDraggedPiece: (piece: THREE.Mesh | null) => void;
   setPinnedPiece: (piece: THREE.Mesh | null) => void;
   setIgnoredPiece: (piece: THREE.Mesh | null) => void;
 };
@@ -66,6 +67,7 @@ export function createPieceHoverController(
   let hasPointerPosition = false;
   let hovered: THREE.Mesh | null = null;
   let hoveredMode: HighlightMode | null = null;
+  let draggedPiece: THREE.Mesh | null = null;
   let pinnedPiece: THREE.Mesh | null = null;
   let ignoredPiece: THREE.Mesh | null = null;
   const squareHighlight = new THREE.Mesh(
@@ -118,16 +120,35 @@ export function createPieceHoverController(
     setEnabled(nextEnabled: boolean) {
       enabled = nextEnabled;
       if (!enabled) {
-        if (pinnedPiece && hovered === pinnedPiece) {
+        if ((pinnedPiece && hovered === pinnedPiece) || (draggedPiece && hovered === draggedPiece)) {
           squareHighlight.visible = false;
         } else {
           clearHoveredState();
         }
       }
     },
+    setDraggedPiece(piece: THREE.Mesh | null) {
+      draggedPiece = piece;
+      if (draggedPiece) {
+        highlightPiece(draggedPiece, 'drag');
+        return;
+      }
+
+      if (pinnedPiece) {
+        highlightPiece(pinnedPiece, 'pinned');
+        return;
+      }
+
+      clearHoveredState();
+    },
     setPinnedPiece(piece: THREE.Mesh | null) {
       pinnedPiece = piece;
       if (!pinnedPiece) {
+        if (draggedPiece) {
+          highlightPiece(draggedPiece, 'drag');
+          return;
+        }
+
         clearHoveredState();
         return;
       }
@@ -156,6 +177,11 @@ export function createPieceHoverController(
 
       if (pinnedPiece && !pinnedPiece.parent) {
         pinnedPiece = null;
+        clearHoveredState();
+      }
+
+      if (draggedPiece && !draggedPiece.parent) {
+        draggedPiece = null;
         clearHoveredState();
       }
 
@@ -194,6 +220,11 @@ export function createPieceHoverController(
         } else {
           squareHighlight.visible = false;
         }
+      }
+
+      if (draggedPiece) {
+        highlightPiece(draggedPiece, 'drag');
+        return;
       }
 
       if (pinnedPiece) {
