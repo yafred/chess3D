@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 
 const pieceCodes = new Set(['K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 'r', 'b', 'n', 'p']);
-const hoverTintScalar = 0.5;
-const pinnedTintScalar = 0.7;
+const hoverHighlightColor = new THREE.Color(0x8fd3ff);
+const pinnedHighlightColor = new THREE.Color(0x2f6fff);
 
 type HighlightMode = 'hover' | 'pinned';
 
@@ -110,8 +110,8 @@ export function createPieceHoverController(
     hovered = piece;
     hoveredMode = mode;
     hovered.userData.originalColor = material.color.clone();
-    const tintScalar = mode === 'pinned' ? pinnedTintScalar : hoverTintScalar;
-    material.color.copy(hovered.userData.originalColor).multiplyScalar(tintScalar);
+    const highlightColor = mode === 'pinned' ? pinnedHighlightColor : hoverHighlightColor;
+    material.color.copy(highlightColor);
   }
 
   return {
