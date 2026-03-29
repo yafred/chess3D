@@ -4,6 +4,12 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { fenToScene } from './fen';
 import { createPieceHoverController } from './hover';
 
+declare global {
+  interface Window {
+    displayFen: (fen: string) => void;
+  }
+}
+
 const scene = new THREE.Scene();
 scene.visible = false;
 scene.background = new THREE.Color(0x404040);
@@ -11,6 +17,22 @@ scene.background = new THREE.Color(0x404040);
 const loader = new GLTFLoader();
 const materials = new Map();
 const pieces = new Map();
+const defaultFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
+let pendingFen: string | null = null;
+
+function displayFenInScene(fen: string) {
+  if (pieces.size === 0) {
+    pendingFen = fen;
+    console.warn('Pieces are still loading. FEN queued and will be shown when ready.');
+    return;
+  }
+
+  fenToScene(fen, scene, pieces, materials);
+  scene.visible = true;
+}
+
+window.displayFen = displayFenInScene;
+
 loader.load('/scene.glb', (gltf) => {
   scene.add(gltf.scene);
   gltf.scene.scale.set(1, 1, 1);
@@ -24,8 +46,8 @@ loader.load('/scene.glb', (gltf) => {
     }
   });
 
-  fenToScene('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR', scene, pieces, materials);
-  scene.visible = true;
+  displayFenInScene(pendingFen ?? defaultFen);
+  pendingFen = null;
 });
 
 // Camera
