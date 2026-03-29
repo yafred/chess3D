@@ -25,7 +25,13 @@ export function fenToScene(fen: string, scene: THREE.Scene, pieces: Map<string, 
                     // Reminder: X: horizontal positive to the right, Y: vertical positive up, Z: horizontal positive towards the camera    
                     const materialName = char === char.toUpperCase() ? 'white piece' : 'black piece';
                     const material = materials.get(materialName);
-                    clone.material = material || clone.material;
+                    if (material) {
+                        clone.material = material.clone();
+                    } else if (Array.isArray(clone.material)) {
+                        clone.material = clone.material.map((m) => m.clone());
+                    } else {
+                        clone.material = clone.material.clone();
+                    }
                     clone.visible = true;
                     scene.add(clone);
                 }
