@@ -57,6 +57,7 @@ export function createPieceHoverController(
   const boardPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   const boardPoint = new THREE.Vector3();
   let enabled = true;
+  let hasPointerPosition = false;
   let hovered: THREE.Mesh | null = null;
   const squareHighlight = new THREE.Mesh(
     new THREE.PlaneGeometry(1, 1),
@@ -96,9 +97,16 @@ export function createPieceHoverController(
       const rect = domElement.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      hasPointerPosition = true;
     },
     update() {
       if (!enabled) {
+        return;
+      }
+
+      // Avoid highlighting a square at startup before any pointer input exists.
+      if (!hasPointerPosition) {
+        clearHoveredState();
         return;
       }
 
