@@ -1,3 +1,6 @@
+## Demo
+You can see current state [here](https://yafred.github.io/chess3D/)
+
 ## Installation
 
 ```sh
@@ -29,5 +32,5 @@ To enable it:
 3. Set `Source` to `GitHub Actions`.
 4. Push to `master`, or run the `Deploy to GitHub Pages` workflow manually.
 
-After deployment, the app will be available at your repository's GitHub Pages URL.
+After deployment, the app will be available on the project's github pages
 
