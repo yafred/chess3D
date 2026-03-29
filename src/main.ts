@@ -64,6 +64,46 @@ window.addEventListener("resize", () => {
 
 const hoverController = createPieceHoverController(scene, camera, renderer.domElement);
 window.addEventListener('pointermove', hoverController.updateFromPointerEvent);
+
+const pieceCodes = new Set(['K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 'r', 'b', 'n', 'p']);
+const pointerRaycaster = new THREE.Raycaster();
+const pointerNdc = new THREE.Vector2();
+
+function getPieceMeshFromObject(object: THREE.Object3D | null): THREE.Mesh | null {
+  let current: THREE.Object3D | null = object;
+  while (current) {
+    if (current instanceof THREE.Mesh && pieceCodes.has(current.name)) {
+      return current;
+    }
+    current = current.parent;
+  }
+
+  return null;
+}
+
+function isPointerOverPiece(event: PointerEvent): boolean {
+  const rect = renderer.domElement.getBoundingClientRect();
+  pointerNdc.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  pointerNdc.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  pointerRaycaster.setFromCamera(pointerNdc, camera);
+  const hits = pointerRaycaster.intersectObjects(scene.children, true);
+  for (const hit of hits) {
+    if (getPieceMeshFromObject(hit.object)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+renderer.domElement.addEventListener('pointerdown', (event) => {
+  if (isPointerOverPiece(event)) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+}, { capture: true });
+
 let activeMouseButton: number | null = null;
 let hoverDisabledForOrbit = false;
 
