@@ -1,7 +1,7 @@
 ## Demo
 Chess3D is my lab to experiment building and interacting with a 3D chessboard on a web page using [Three.js](https://threejs.org/).
-<img width="1157" height="1030" alt="Capture d&#39;écran 2026-03-30 131439" src="https://github.com/user-attachments/assets/2ad795af-5f5e-4e6e-8332-a1c4f924b8e4" />
 
+<img width="1157" height="1030" alt="Capture d&#39;écran 2026-03-30 131439" src="https://github.com/user-attachments/assets/2ad795af-5f5e-4e6e-8332-a1c4f924b8e4" />
 
 
 You can see current state [here](https://yafred.github.io/chess3D/)
