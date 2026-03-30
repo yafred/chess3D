@@ -17,6 +17,7 @@ export function fenToScene(fen: string, scene: THREE.Scene, pieces: Map<string, 
         }
     }
 
+    // Parse FEN and add pieces to the scene (creating clones of the original meshes)
     const rows = fen.split(' ')[0].split('/');
     for (let r = 0; r < 8; r++) {
         let c = 0;

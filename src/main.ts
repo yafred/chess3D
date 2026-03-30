@@ -14,7 +14,10 @@ declare global {
     setFov: (fov: number) => void;
   }
 }
+window.displayFen = displayFenInScene;
+window.setFov = setFov;
 
+// Scene setup
 const scene = new THREE.Scene();
 scene.visible = false;
 scene.background = new THREE.Color(0x404040);
@@ -31,50 +34,6 @@ if (!(sceneRoot instanceof HTMLDivElement)) {
 const sceneAssetUrl = `${import.meta.env.BASE_URL}scene.glb`;
 const defaultFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 let pendingFen: string | null = null;
-
-function getSceneRootSize() {
-  return {
-    width: sceneRoot.clientWidth || window.innerWidth,
-    height: sceneRoot.clientHeight || window.innerHeight,
-  };
-}
-
-function displayFenInScene(fen: string) {
-  if (pieces.size === 0) {
-    pendingFen = fen;
-    console.warn('Pieces are still loading. FEN queued and will be shown when ready.');
-    return;
-  }
-
-  fenToScene(fen, scene, pieces, materials);
-  scene.visible = true;
-}
-
-window.displayFen = displayFenInScene;
-
-function setFov(fov: number) {
-  camera.fov = fov;
-  camera.updateProjectionMatrix();
-}
-
-window.setFov = setFov;
-
-loader.load(sceneAssetUrl, (gltf) => {
-  scene.add(gltf.scene);
-  gltf.scene.scale.set(1, 1, 1);
-  scene.traverse((obj) => {
-    if (obj instanceof THREE.Mesh && ['King', 'Queen', 'Rook', 'Bishop', 'Knight', 'Pawn'].includes(obj.name)) {
-      obj.visible = false; 
-      pieces.set(obj.name, obj);
-      if (obj.material && !Array.isArray(obj.material) && ['white piece', 'black piece'].includes(obj.material.name)) {
-        materials.set(obj.material.name, obj.material);
-      }
-    }
-  });
-
-  displayFenInScene(pendingFen ?? defaultFen);
-  pendingFen = null;
-});
 
 // Camera
 const { width: initialWidth, height: initialHeight } = getSceneRootSize();
@@ -106,7 +65,7 @@ light2.position.set(0, 1, -1);
 light2.target.position.set(0, 0, 0);
 scene.add(light2);
 
-// Resize
+// Resize event
 window.addEventListener("resize", () => {
   const { width, height } = getSceneRootSize();
   camera.aspect = width / height;
@@ -114,6 +73,7 @@ window.addEventListener("resize", () => {
   renderer.setSize(width, height);
 });
 
+// Set up piece hover and interaction
 const hoverController = createPieceHoverController(scene, camera, renderer.domElement);
 sceneRoot.addEventListener('pointermove', hoverController.updateFromPointerEvent);
 setupPieceInteraction({
@@ -124,7 +84,23 @@ setupPieceInteraction({
   hoverController,
 });
 
+// Load the scene and pieces
+loader.load(sceneAssetUrl, (gltf) => {
+  scene.add(gltf.scene);
+  gltf.scene.scale.set(1, 1, 1);
+  scene.traverse((obj) => {
+    if (obj instanceof THREE.Mesh && ['King', 'Queen', 'Rook', 'Bishop', 'Knight', 'Pawn'].includes(obj.name)) {
+      obj.visible = false; 
+      pieces.set(obj.name, obj);
+      if (obj.material && !Array.isArray(obj.material) && ['white piece', 'black piece'].includes(obj.material.name)) {
+        materials.set(obj.material.name, obj.material);
+      }
+    }
+  });
 
+  displayFenInScene(pendingFen ?? defaultFen);
+  pendingFen = null;
+});
 
 // Main loop
 function animate() {
@@ -136,4 +112,28 @@ function animate() {
 }
 animate();
 
+
+// Utils
+function displayFenInScene(fen: string) {
+  if (pieces.size === 0) {
+    pendingFen = fen;
+    console.warn('Pieces are still loading. FEN queued and will be shown when ready.');
+    return;
+  }
+
+  fenToScene(fen, scene, pieces, materials);
+  scene.visible = true;
+}
+
+function setFov(fov: number) {
+  camera.fov = fov;
+  camera.updateProjectionMatrix();
+}
+
+function getSceneRootSize() {
+  return {
+    width: sceneRoot.clientWidth || window.innerWidth,
+    height: sceneRoot.clientHeight || window.innerHeight,
+  };
+}
 
