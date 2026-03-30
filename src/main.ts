@@ -7,6 +7,7 @@ import { fenToScene } from './fen';
 import { createPieceHoverController } from './hover';
 import { setupPieceInteraction } from './pieceInteraction';
 
+// Commands from the browser console for testing
 declare global {
   interface Window {
     displayFen: (fen: string) => void;
@@ -114,7 +115,7 @@ window.addEventListener("resize", () => {
 });
 
 const hoverController = createPieceHoverController(scene, camera, renderer.domElement);
-window.addEventListener('pointermove', hoverController.updateFromPointerEvent);
+sceneRoot.addEventListener('pointermove', hoverController.updateFromPointerEvent);
 setupPieceInteraction({
   scene,
   camera,
