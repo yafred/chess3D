@@ -165,7 +165,18 @@
 
     const params = new URLSearchParams(location.search);
     const code = params.get("code");
-    if (code) exchangeCodeForToken(code);
+
+    if (localStorage.getItem("access_token")) {
+      log("Connected to Lichess.");
+    }
+
+    if (code) {
+      // Remove the code from the URL to avoid confusion on reload
+      history.replaceState({}, document.title, location.pathname);
+      if (!localStorage.getItem("access_token")) {
+        exchangeCodeForToken(code);
+      }
+    }
   </script>
 </body>
 
