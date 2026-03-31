@@ -1,0 +1,130 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Lichess board client</title>
+</head>
+<body>
+  <button id="login">Login with Lichess</button>
+  <button id="connect">Connect to game stream</button>
+  <input id="move" placeholder="e2e4" />
+  <button id="send">Send move</button>
+
+  <pre id="log"></pre>
+
+  <script>
+    const CLIENT_ID = "your-app-name";
+    const REDIRECT_URI = location.origin + location.pathname;
+    const SCOPES = "board:play";
+
+    const log = (msg) => {
+      document.querySelector("#log").textContent += msg + "\n";
+    };
+
+    function randomString(len = 64) {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+      let s = "";
+      crypto.getRandomValues(new Uint8Array(len)).forEach(v => s += chars[v % chars.length]);
+      return s;
+    }
+
+    async function sha256(baseString) {
+      const data = new TextEncoder().encode(baseString);
+      const digest = await crypto.subtle.digest("SHA-256", data);
+      return btoa(String.fromCharCode(...new Uint8Array(digest)))
+        .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    }
+
+    async function login() {
+      const verifier = randomString(96);
+      const challenge = await sha256(verifier);
+      localStorage.setItem("pkce_verifier", verifier);
+
+      const url = new URL("https://lichess.org/oauth");
+      url.searchParams.set("response_type", "code");
+      url.searchParams.set("client_id", CLIENT_ID);
+      url.searchParams.set("redirect_uri", REDIRECT_URI);
+      url.searchParams.set("code_challenge", challenge);
+      url.searchParams.set("code_challenge_method", "S256");
+      url.searchParams.set("scope", SCOPES);
+
+      location.href = url.toString();
+    }
+
+    async function exchangeCodeForToken(code) {
+      const verifier = localStorage.getItem("pkce_verifier");
+      const form = new URLSearchParams({
+        grant_type: "authorization_code",
+        client_id: CLIENT_ID,
+        code,
+        code_verifier: verifier,
+        redirect_uri: REDIRECT_URI
+      });
+
+      const res = await fetch("https://lichess.org/api/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: form
+      });
+
+      const json = await res.json();
+      localStorage.setItem("access_token", json.access_token);
+      log("Token stored.");
+    }
+
+    async function connectGameStream(gameId) {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`https://lichess.org/api/board/game/stream/${gameId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+
+        const lines = buf.split("\n");
+        buf = lines.pop();
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const msg = JSON.parse(line);
+            log(JSON.stringify(msg));
+          } catch {}
+        }
+      }
+    }
+
+    async function sendMove(gameId, move) {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`https://lichess.org/api/board/game/${gameId}/move/${move}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      log(`Move sent: ${move}, status=${res.status}`);
+    }
+
+    document.querySelector("#login").onclick = login;
+
+    document.querySelector("#connect").onclick = () => {
+      const gameId = prompt("Game ID?");
+      connectGameStream(gameId);
+    };
+
+    document.querySelector("#send").onclick = () => {
+      const gameId = prompt("Game ID?");
+      const move = document.querySelector("#move").value;
+      sendMove(gameId, move);
+    };
+
+    const params = new URLSearchParams(location.search);
+    const code = params.get("code");
+    if (code) exchangeCodeForToken(code);
+  </script>
+</body>
+</html>
