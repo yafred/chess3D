@@ -1,11 +1,16 @@
 <!doctype html>
 <html>
+
 <head>
   <meta charset="utf-8" />
   <title>Lichess board client</title>
 </head>
+
 <body>
-  <button id="login">Login with Lichess</button>
+  <button id="login">connect Lichess</button>
+  <button id="logout">disconnect Lichess</button>
+  <button id="account">Get account info</button>
+  <button id="playing">Get ongoing games</button>
   <button id="connect">Connect to game stream</button>
   <input id="move" placeholder="e2e4" />
   <button id="send">Send move</button>
@@ -13,7 +18,7 @@
   <pre id="log"></pre>
 
   <script>
-    const CLIENT_ID = "your-app-name";
+    const CLIENT_ID = "chess3D";
     const REDIRECT_URI = location.origin + location.pathname;
     const SCOPES = "board:play";
 
@@ -69,7 +74,7 @@
 
       const json = await res.json();
       localStorage.setItem("access_token", json.access_token);
-      log("Token stored.");
+      log("Connected to Lichess.");
     }
 
     async function connectGameStream(gameId) {
@@ -95,7 +100,7 @@
           try {
             const msg = JSON.parse(line);
             log(JSON.stringify(msg));
-          } catch {}
+          } catch { }
         }
       }
     }
@@ -109,8 +114,31 @@
       log(`Move sent: ${move}, status=${res.status}`);
     }
 
-    document.querySelector("#login").onclick = login;
+    async function getAccount() {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch("https://lichess.org/api/account", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      log(JSON.stringify(await res.json()));
+    }
 
+    async function getOngoingGames() {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch("https://lichess.org/api/account/playing", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      log(JSON.stringify(await res.json()));
+    }
+
+
+
+
+
+    document.querySelector("#login").onclick = login;
+    document.querySelector("#logout").onclick = () => {
+      localStorage.removeItem("access_token");
+      log("Disconnected from Lichess.");
+    };
     document.querySelector("#connect").onclick = () => {
       const gameId = prompt("Game ID?");
       connectGameStream(gameId);
@@ -122,9 +150,21 @@
       sendMove(gameId, move);
     };
 
+    document.querySelector("#account").onclick = () => {
+      getAccount();
+    };
+
+    document.querySelector("#playing").onclick = () => {
+      getOngoingGames();
+    };
+
+
+
+
     const params = new URLSearchParams(location.search);
     const code = params.get("code");
     if (code) exchangeCodeForToken(code);
   </script>
 </body>
+
 </html>
