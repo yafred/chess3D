@@ -119,7 +119,8 @@
       const res = await fetch("https://lichess.org/api/account", {
         headers: { Authorization: `Bearer ${token}` }
       });
-      log(JSON.stringify(await res.json()));
+      const json = await res.json();
+      log(`Logged in as ${json.username}`);
     }
 
     async function getOngoingGames() {
@@ -127,7 +128,8 @@
       const res = await fetch("https://lichess.org/api/account/playing", {
         headers: { Authorization: `Bearer ${token}` }
       });
-      log(JSON.stringify(await res.json()));
+      const json = await res.json();
+      log('Playing: ' + json.nowPlaying.map(g => g.gameId + " (as " + g.color + ")" + " against " + g.opponent.username).join(", "));
     }
 
 
