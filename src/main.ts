@@ -78,12 +78,21 @@ window.addEventListener("resize", () => {
 // Set up piece hover and interaction
 const hoverController = createPieceHoverController(scene, camera, renderer.domElement);
 sceneRoot.addEventListener('pointermove', hoverController.updateFromPointerEvent);
+
+// Move validation callback - receives moves in UCI form (e.g., "e2e4")
+// Return true to accept the move, false to reject it and revert the piece
+const validateMove = (uci: string): boolean => {
+  console.log('Move attempt:', uci);
+  return true; // Accept all moves by default
+};
+
 const pieceInteraction = setupPieceInteraction({
   scene,
   camera,
   renderer,
   controls,
   hoverController,
+  onMoveAttempt: validateMove,
 });
 
 // Load the scene and pieces

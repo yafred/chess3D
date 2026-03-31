@@ -19,6 +19,7 @@ type SetupPieceInteractionParams = {
   renderer: THREE.WebGLRenderer;
   controls: OrbitControls;
   hoverController: PieceHoverController;
+  onMoveAttempt?: (uci: string) => boolean; // Validate move in UCI form; return true if valid
 };
 
 export type PieceInteractionController = {
@@ -32,6 +33,7 @@ export function setupPieceInteraction({
   renderer,
   controls,
   hoverController,
+  onMoveAttempt,
 }: SetupPieceInteractionParams): PieceInteractionController {
   const pointerRaycaster = new THREE.Raycaster();
   const pointerNdc = new THREE.Vector2();
@@ -138,6 +140,16 @@ export function setupPieceInteraction({
     };
   }
 
+  function coordinatesToUci(fromX: number, fromZ: number, toX: number, toZ: number): string {
+    // Convert board coordinates to square notation (a1-h8)
+    const coordToSquare = (x: number, z: number) => {
+      const fileIndex = Math.round(x + 3.5);
+      const rank = Math.round(4.5 - z);
+      return String.fromCharCode('a'.charCodeAt(0) + fileIndex) + rank;
+    };
+    return coordToSquare(fromX, fromZ) + coordToSquare(toX, toZ);
+  }
+
   function setLastMoveHighlights(fromX: number, fromZ: number, toX: number, toZ: number) {
     lastMoveFromHighlight.position.x = fromX;
     lastMoveFromHighlight.position.z = fromZ;
@@ -178,6 +190,16 @@ export function setupPieceInteraction({
     fromX = movingPiece.position.x,
     fromZ = movingPiece.position.z,
   ): boolean {
+    // Validate move through callback if provided
+    if (onMoveAttempt) {
+      const normalizedFromX = getSquareCoordinate(fromX);
+      const normalizedFromZ = getSquareCoordinate(fromZ);
+      const uci = coordinatesToUci(normalizedFromX, normalizedFromZ, targetX, targetZ);
+      if (!onMoveAttempt(uci)) {
+        return false; // Move rejected by validation callback
+      }
+    }
+
     const fromSquareX = getSquareCoordinate(fromX);
     const fromSquareZ = getSquareCoordinate(fromZ);
     const occupyingPiece = getPieceAtSquare(targetX, targetZ, movingPiece);
