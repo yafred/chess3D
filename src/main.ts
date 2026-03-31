@@ -12,10 +12,12 @@ declare global {
   interface Window {
     displayFen: (fen: string) => void;
     setFov: (fov: number) => void;
+    movePiece: (from: string, to: string) => boolean;
   }
 }
 window.displayFen = displayFenInScene;
 window.setFov = setFov;
+window.movePiece = (from, to) => pieceInteraction.moveProgrammaticallyBySquare(from, to);
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -76,7 +78,7 @@ window.addEventListener("resize", () => {
 // Set up piece hover and interaction
 const hoverController = createPieceHoverController(scene, camera, renderer.domElement);
 sceneRoot.addEventListener('pointermove', hoverController.updateFromPointerEvent);
-setupPieceInteraction({
+const pieceInteraction = setupPieceInteraction({
   scene,
   camera,
   renderer,

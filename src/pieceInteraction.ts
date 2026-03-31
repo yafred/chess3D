@@ -21,13 +21,18 @@ type SetupPieceInteractionParams = {
   hoverController: PieceHoverController;
 };
 
+export type PieceInteractionController = {
+  moveProgrammatically: (fromX: number, fromZ: number, toX: number, toZ: number) => boolean;
+  moveProgrammaticallyBySquare: (from: string, to: string) => boolean;
+};
+
 export function setupPieceInteraction({
   scene,
   camera,
   renderer,
   controls,
   hoverController,
-}: SetupPieceInteractionParams) {
+}: SetupPieceInteractionParams): PieceInteractionController {
   const pointerRaycaster = new THREE.Raycaster();
   const pointerNdc = new THREE.Vector2();
   const boardPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -119,6 +124,20 @@ export function setupPieceInteraction({
     return isWhitePiece(a) !== isWhitePiece(b);
   }
 
+  function parseSquare(square: string): { x: number; z: number } | null {
+    const normalized = square.trim().toLowerCase();
+    if (!/^[a-h][1-8]$/.test(normalized)) {
+      return null;
+    }
+
+    const fileIndex = normalized.charCodeAt(0) - 'a'.charCodeAt(0);
+    const rank = Number.parseInt(normalized[1], 10);
+    return {
+      x: fileIndex - 3.5,
+      z: 4.5 - rank,
+    };
+  }
+
   function setLastMoveHighlights(fromX: number, fromZ: number, toX: number, toZ: number) {
     lastMoveFromHighlight.position.x = fromX;
     lastMoveFromHighlight.position.z = fromZ;
@@ -176,6 +195,43 @@ export function setupPieceInteraction({
     movingPiece.position.set(targetX, movingPiece.position.y, targetZ);
     setLastMoveHighlights(fromSquareX, fromSquareZ, targetX, targetZ);
     return true;
+  }
+
+  function moveProgrammatically(fromX: number, fromZ: number, toX: number, toZ: number): boolean {
+    if (dragState) {
+      return false;
+    }
+
+    const sourceX = getSquareCoordinate(fromX);
+    const sourceZ = getSquareCoordinate(fromZ);
+    const targetX = getSquareCoordinate(toX);
+    const targetZ = getSquareCoordinate(toZ);
+    if (!isWithinBoard(sourceX, sourceZ) || !isWithinBoard(targetX, targetZ)) {
+      return false;
+    }
+
+    const movingPiece = getPieceAtSquare(sourceX, sourceZ);
+    if (!movingPiece) {
+      return false;
+    }
+
+    const moved = applyMoveOrCapture(movingPiece, targetX, targetZ, sourceX, sourceZ);
+    if (!moved) {
+      return false;
+    }
+
+    clearSelection();
+    return true;
+  }
+
+  function moveProgrammaticallyBySquare(from: string, to: string): boolean {
+    const source = parseSquare(from);
+    const target = parseSquare(to);
+    if (!source || !target) {
+      return false;
+    }
+
+    return moveProgrammatically(source.x, source.z, target.x, target.z);
   }
 
   function handleSelectedPieceClickTarget(event: PointerEvent): boolean {
@@ -408,4 +464,9 @@ export function setupPieceInteraction({
       hoverDisabledForOrbit = false;
     }
   });
+
+  return {
+    moveProgrammatically,
+    moveProgrammaticallyBySquare,
+  };
 }
