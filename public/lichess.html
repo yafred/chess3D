@@ -7,11 +7,12 @@
 </head>
 
 <body>
-  <button id="login">connect Lichess</button>
-  <button id="logout">disconnect Lichess</button>
+  <button id="login">connect to Lichess</button>
+  <button id="logout">disconnect from Lichess</button>
   <button id="account">Get account info</button>
   <button id="playing">Get ongoing games</button>
   <button id="connect">Connect to game stream</button>
+  <button id="disconnect">Disconnect from game stream</button>
   <input id="move" placeholder="e2e4" />
   <button id="send">Send move</button>
 
@@ -78,6 +79,7 @@
     }
 
     async function connectGameStream(gameId) {
+      localStorage.setItem("current_game_stream", gameId);
       const token = localStorage.getItem("access_token");
       const res = await fetch(`https://lichess.org/api/board/game/stream/${gameId}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -135,31 +137,37 @@
 
 
 
-
+    // Set up event listeners
     document.querySelector("#login").onclick = login;
     document.querySelector("#logout").onclick = () => {
       localStorage.removeItem("access_token");
+      localStorage.removeItem("current_game_stream");
+      localStorage.removeItem("pkce_verifier");
       log("Disconnected from Lichess.");
     };
     document.querySelector("#connect").onclick = () => {
       const gameId = prompt("Game ID?");
       connectGameStream(gameId);
     };
-
     document.querySelector("#send").onclick = () => {
-      const gameId = prompt("Game ID?");
+      const gameId = localStorage.getItem("current_game_stream");
+      if (!gameId) {
+        log("No game stream connected.");
+        return;
+      }
       const move = document.querySelector("#move").value;
       sendMove(gameId, move);
     };
-
     document.querySelector("#account").onclick = () => {
       getAccount();
     };
-
     document.querySelector("#playing").onclick = () => {
       getOngoingGames();
     };
-
+    document.querySelector("#disconnect").onclick = () => {
+      localStorage.removeItem("current_game_stream");
+      log("Disconnected from game stream.");
+    };
 
 
 
