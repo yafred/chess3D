@@ -33,6 +33,36 @@ export function setupPieceInteraction({
   const boardPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   const boardPoint = new THREE.Vector3();
   const dragThresholdPx = 4;
+  const lastMoveFromHighlight = new THREE.Mesh(
+    new THREE.PlaneGeometry(1, 1),
+    new THREE.MeshBasicMaterial({
+      color: 0xffe45c,
+      transparent: true,
+      opacity: 0.35,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+  );
+  const lastMoveToHighlight = new THREE.Mesh(
+    new THREE.PlaneGeometry(1, 1),
+    new THREE.MeshBasicMaterial({
+      color: 0xffe45c,
+      transparent: true,
+      opacity: 0.4,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+  );
+  lastMoveFromHighlight.rotation.x = -Math.PI / 2;
+  lastMoveToHighlight.rotation.x = -Math.PI / 2;
+  lastMoveFromHighlight.position.y = 0.005;
+  lastMoveToHighlight.position.y = 0.006;
+  lastMoveFromHighlight.visible = false;
+  lastMoveToHighlight.visible = false;
+  lastMoveFromHighlight.renderOrder = 8;
+  lastMoveToHighlight.renderOrder = 9;
+  scene.add(lastMoveFromHighlight);
+  scene.add(lastMoveToHighlight);
 
   let dragState: DragState | null = null;
   let selectedPiece: THREE.Mesh | null = null;
@@ -89,6 +119,15 @@ export function setupPieceInteraction({
     return isWhitePiece(a) !== isWhitePiece(b);
   }
 
+  function setLastMoveHighlights(fromX: number, fromZ: number, toX: number, toZ: number) {
+    lastMoveFromHighlight.position.x = fromX;
+    lastMoveFromHighlight.position.z = fromZ;
+    lastMoveToHighlight.position.x = toX;
+    lastMoveToHighlight.position.z = toZ;
+    lastMoveFromHighlight.visible = true;
+    lastMoveToHighlight.visible = true;
+  }
+
   function getPieceUnderPointer(event: PointerEvent): THREE.Mesh | null {
     updatePointerNdc(event);
     pointerRaycaster.setFromCamera(pointerNdc, camera);
@@ -113,10 +152,19 @@ export function setupPieceInteraction({
     hoverController.setPinnedPiece(piece);
   }
 
-  function applyMoveOrCapture(movingPiece: THREE.Mesh, targetX: number, targetZ: number): boolean {
+  function applyMoveOrCapture(
+    movingPiece: THREE.Mesh,
+    targetX: number,
+    targetZ: number,
+    fromX = movingPiece.position.x,
+    fromZ = movingPiece.position.z,
+  ): boolean {
+    const fromSquareX = getSquareCoordinate(fromX);
+    const fromSquareZ = getSquareCoordinate(fromZ);
     const occupyingPiece = getPieceAtSquare(targetX, targetZ, movingPiece);
     if (!occupyingPiece) {
       movingPiece.position.set(targetX, movingPiece.position.y, targetZ);
+      setLastMoveHighlights(fromSquareX, fromSquareZ, targetX, targetZ);
       return true;
     }
 
@@ -126,6 +174,7 @@ export function setupPieceInteraction({
 
     scene.remove(occupyingPiece);
     movingPiece.position.set(targetX, movingPiece.position.y, targetZ);
+    setLastMoveHighlights(fromSquareX, fromSquareZ, targetX, targetZ);
     return true;
   }
 
@@ -147,10 +196,10 @@ export function setupPieceInteraction({
       if (isOppositeColor(selectedPiece, targetPiece)) {
         const targetX = targetPiece.position.x;
         const targetZ = targetPiece.position.z;
-        scene.remove(targetPiece);
-        selectedPiece.position.set(targetX, selectedPiece.position.y, targetZ);
-        clearSelection();
-        return true;
+        if (applyMoveOrCapture(selectedPiece, targetX, targetZ)) {
+          clearSelection();
+          return true;
+        }
       }
 
       selectPiece(targetPiece);
@@ -225,7 +274,7 @@ export function setupPieceInteraction({
     if (hasBoardIntersection && isWithinBoard(boardPoint.x, boardPoint.z)) {
       const targetX = getSquareCoordinate(boardPoint.x);
       const targetZ = getSquareCoordinate(boardPoint.z);
-      dropApplied = applyMoveOrCapture(piece, targetX, targetZ);
+      dropApplied = applyMoveOrCapture(piece, targetX, targetZ, startPosition.x, startPosition.z);
     }
 
     if (!dropApplied) {
@@ -268,10 +317,10 @@ export function setupPieceInteraction({
       if (isOppositeColor(selectedPiece, piece)) {
         const targetX = piece.position.x;
         const targetZ = piece.position.z;
-        scene.remove(piece);
-        selectedPiece.position.set(targetX, selectedPiece.position.y, targetZ);
-        clearSelection();
-        return;
+        if (applyMoveOrCapture(selectedPiece, targetX, targetZ)) {
+          clearSelection();
+          return;
+        }
       }
 
       selectPiece(piece);
