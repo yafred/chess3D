@@ -22,6 +22,7 @@
     const CLIENT_ID = "chess3D";
     const REDIRECT_URI = location.origin + location.pathname;
     const SCOPES = "board:play";
+    const HOST = "https://lichess.org";
 
     const log = (msg) => {
       document.querySelector("#log").textContent += msg + "\n";
@@ -46,7 +47,7 @@
       const challenge = await sha256(verifier);
       localStorage.setItem("pkce_verifier", verifier);
 
-      const url = new URL("https://lichess.org/oauth");
+      const url = new URL(`${HOST}/oauth`);
       url.searchParams.set("response_type", "code");
       url.searchParams.set("client_id", CLIENT_ID);
       url.searchParams.set("redirect_uri", REDIRECT_URI);
@@ -67,7 +68,7 @@
         redirect_uri: REDIRECT_URI
       });
 
-      const res = await fetch("https://lichess.org/api/token", {
+      const res = await fetch(`${HOST}/api/token`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: form
@@ -81,7 +82,7 @@
     async function connectGameStream(gameId) {
       localStorage.setItem("current_game_stream", gameId);
       const token = localStorage.getItem("access_token");
-      const res = await fetch(`https://lichess.org/api/board/game/stream/${gameId}`, {
+      const res = await fetch(`${HOST}/api/board/game/stream/${gameId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -109,7 +110,7 @@
 
     async function sendMove(gameId, move) {
       const token = localStorage.getItem("access_token");
-      const res = await fetch(`https://lichess.org/api/board/game/${gameId}/move/${move}`, {
+      const res = await fetch(`${HOST}/api/board/game/${gameId}/move/${move}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -118,7 +119,7 @@
 
     async function getAccount() {
       const token = localStorage.getItem("access_token");
-      const res = await fetch("https://lichess.org/api/account", {
+      const res = await fetch(`${HOST}/api/account`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const json = await res.json();
@@ -127,7 +128,7 @@
 
     async function getOngoingGames() {
       const token = localStorage.getItem("access_token");
-      const res = await fetch("https://lichess.org/api/account/playing", {
+      const res = await fetch(`${HOST}/api/account/playing`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const json = await res.json();
