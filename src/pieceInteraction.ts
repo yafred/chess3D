@@ -190,9 +190,10 @@ export function setupPieceInteraction({
     targetZ: number,
     fromX = movingPiece.position.x,
     fromZ = movingPiece.position.z,
+    validateWithCallback = true,
   ): boolean {
     // Validate move through callback if provided
-    if (onMoveAttempt) {
+    if (validateWithCallback && onMoveAttempt) {
       const normalizedFromX = getSquareCoordinate(fromX);
       const normalizedFromZ = getSquareCoordinate(fromZ);
       const uci = coordinatesToUci(normalizedFromX, normalizedFromZ, targetX, targetZ);
@@ -242,7 +243,7 @@ export function setupPieceInteraction({
       return false;
     }
 
-    const moved = applyMoveOrCapture(movingPiece, targetX, targetZ, sourceX, sourceZ);
+    const moved = applyMoveOrCapture(movingPiece, targetX, targetZ, sourceX, sourceZ, false);
     if (!moved) {
       return false;
     }

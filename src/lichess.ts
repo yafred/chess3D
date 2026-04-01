@@ -18,6 +18,39 @@ export function setupLichessInteraction({
     const SCOPES = "board:play";
     // const HOST = "https://lichess.org";
     const HOST = "http://localhost:9663";
+    let appliedMoveCount = 0;
+
+    function getMovesFromState(movesText: unknown): string[] {
+        if (typeof movesText !== "string") {
+            return [];
+        }
+
+        return movesText
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean);
+    }
+
+    function emitNewMoves(movesText: unknown) {
+        const allMoves = getMovesFromState(movesText);
+        if (allMoves.length === 0) {
+            appliedMoveCount = 0;
+            return;
+        }
+
+        if (allMoves.length < appliedMoveCount) {
+            appliedMoveCount = 0;
+        }
+
+        const unseenMoves = allMoves.slice(appliedMoveCount);
+        for (const move of unseenMoves) {
+            if (onServerMove) {
+                onServerMove(move);
+            }
+        }
+
+        appliedMoveCount = allMoves.length;
+    }
 
     async function connectGameStream() {
         const token = localStorage.getItem("lichess_token");
@@ -29,6 +62,11 @@ export function setupLichessInteraction({
         const res = await fetch(`${HOST}/api/board/game/stream/${gameId}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
+
+        if (!res.ok || !res.body) {
+            console.warn("Failed to connect to Lichess game stream.", res.status, res.statusText);
+            return;
+        }
 
         console.log('Connected to Lichess game stream');
         const reader = res.body.getReader();
@@ -51,20 +89,11 @@ export function setupLichessInteraction({
                     // if msg.type === "gameFull" we can get the initial position and the uci moves in msg.state.moves
                     if (msg.type === "gameFull") {
                         if (onGameStart) onGameStart();
-                        const moves = msg.state.moves.split(" ");
-                        for (const move of moves) {
-                            if (move.trim()) {
-                                if (onServerMove) onServerMove(move);
-                            }
-                        }
+                        emitNewMoves(msg.state?.moves);
                     }
                     // if msg.type === "gameState" we can get the uci moves in msg.moves
                     else if (msg.type === "gameState") {
-                        const moves = msg.moves.split(" ");
-                        const lastMove = moves[moves.length - 1];
-                        if (lastMove.trim() && onServerMove) {
-                            onServerMove(lastMove);
-                        }
+                        emitNewMoves(msg.moves);
                     }
                 } catch { 
                     console.warn("Failed to parse Lichess stream message:", line);
