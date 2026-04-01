@@ -132,7 +132,7 @@
         headers: { Authorization: `Bearer ${token}` }
       });
       const json = await res.json();
-      log('Playing: ' + json.nowPlaying.map(g => g.gameId + " (as " + g.color + ")" + " against " + g.opponent.username).join(", "));
+      log(json.nowPlaying.map(g => g.gameId + " (as " + g.color + ")" + " against " + g.opponent.username).join("\n"));
     }
 
 
