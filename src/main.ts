@@ -12,12 +12,16 @@ declare global {
   interface Window {
     displayFen: (fen: string) => void;
     setFov: (fov: number) => void;
-    movePiece: (from: string, to: string) => boolean;
+    movePiece: (uci: string) => boolean;
   }
 }
 window.displayFen = displayFenInScene;
 window.setFov = setFov;
-window.movePiece = (from, to) => pieceInteraction.moveProgrammaticallyBySquare(from, to);
+window.movePiece = (uci) => {
+  const from = uci.slice(0, 2);
+  const to = uci.slice(-2);
+  return pieceInteraction.moveProgrammaticallyBySquare(from, to);
+};
 
 // Scene setup
 const scene = new THREE.Scene();
