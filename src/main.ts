@@ -6,6 +6,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { fenToScene } from './fen';
 import { createPieceHoverController } from './hover';
 import { setupPieceInteraction } from './pieceInteraction';
+import { setupLichessInteraction } from './lichess';
 
 // Commands from the browser console for testing
 declare global {
@@ -83,20 +84,30 @@ window.addEventListener("resize", () => {
 const hoverController = createPieceHoverController(scene, camera, renderer.domElement);
 sceneRoot.addEventListener('pointermove', hoverController.updateFromPointerEvent);
 
-// Move validation callback - receives moves in UCI form (e.g., "e2e4")
-// Return true to accept the move, false to reject it and revert the piece
-const validateMove = (uci: string): boolean => {
-  console.log('Move attempt:', uci);
-  return true; // Accept all moves by default
-};
-
+// Set up interactions
 const pieceInteraction = setupPieceInteraction({
   scene,
   camera,
   renderer,
   controls,
   hoverController,
-  onMoveAttempt: validateMove,
+});
+
+const lichessInteraction = setupLichessInteraction({
+  onServerMove: (uci) => {
+    console.log('Server move:', uci);
+    pieceInteraction.moveProgrammaticallyBySquare(uci.slice(0, 2), uci.slice(-2));
+  },
+  onGameStart: () => {
+    console.log('Game started on Lichess. Resetting board.');
+    displayFenInScene(defaultFen);
+  } 
+});
+
+
+pieceInteraction.setMoveAttemptCallback ( (uci) => {
+  console.log('User move attempt:', uci);
+  return lichessInteraction.userMove(uci);
 });
 
 // Load the scene and pieces

@@ -25,6 +25,7 @@ type SetupPieceInteractionParams = {
 export type PieceInteractionController = {
   moveProgrammatically: (fromX: number, fromZ: number, toX: number, toZ: number) => boolean;
   moveProgrammaticallyBySquare: (from: string, to: string) => boolean;
+  setMoveAttemptCallback: (callback: (uci: string) => boolean) => void; // Set callback for validating user moves
 };
 
 export function setupPieceInteraction({
@@ -33,7 +34,6 @@ export function setupPieceInteraction({
   renderer,
   controls,
   hoverController,
-  onMoveAttempt,
 }: SetupPieceInteractionParams): PieceInteractionController {
   const pointerRaycaster = new THREE.Raycaster();
   const pointerNdc = new THREE.Vector2();
@@ -75,6 +75,7 @@ export function setupPieceInteraction({
   let selectedPiece: THREE.Mesh | null = null;
   let activeMouseButton: number | null = null;
   let hoverDisabledForOrbit = false;
+  let onMoveAttempt: ((uci: string) => boolean) | undefined = undefined;
 
   function getPieceMeshFromObject(object: THREE.Object3D | null): THREE.Mesh | null {
     let current: THREE.Object3D | null = object;
@@ -217,6 +218,10 @@ export function setupPieceInteraction({
     movingPiece.position.set(targetX, movingPiece.position.y, targetZ);
     setLastMoveHighlights(fromSquareX, fromSquareZ, targetX, targetZ);
     return true;
+  }
+
+  function setMoveAttemptCallback(callback: (uci: string) => boolean) {
+    onMoveAttempt = callback;
   }
 
   function moveProgrammatically(fromX: number, fromZ: number, toX: number, toZ: number): boolean {
@@ -490,5 +495,6 @@ export function setupPieceInteraction({
   return {
     moveProgrammatically,
     moveProgrammaticallyBySquare,
+    setMoveAttemptCallback,
   };
 }
