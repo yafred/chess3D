@@ -16,8 +16,8 @@ export function setupLichessInteraction({
     const CLIENT_ID = "chess3D";
     const REDIRECT_URI = location.origin + location.pathname;
     const SCOPES = "board:play";
-    // const HOST = "https://lichess.org";
-    const HOST = "http://localhost:9663";
+    const HOST = "https://lichess.org";
+    //  const HOST = "http://localhost:9663";
     let appliedMoveCount = 0;
 
     function getMovesFromState(movesText: unknown): string[] {
