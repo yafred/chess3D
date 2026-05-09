@@ -2,7 +2,7 @@ name: Publish the Lichess API Demo app
 on:
   push:
     branches:
-      - main
+      - master
  
   workflow_dispatch:
 permissions:
