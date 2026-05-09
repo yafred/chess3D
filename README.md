@@ -1,6 +1,6 @@
 # [chess3D](https://yafred.github.io/chess3D/)
 
-Play on Lichess using a 3D model and the Lichess public API.
+Play on [Lichess](https://lichess.org/) using a 3D model and the Lichess public API.
 
 ## Run it on your machine
 
