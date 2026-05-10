@@ -5,6 +5,7 @@ import routing from './routing';
 
 import '../scss/style.scss';
 import 'bootstrap/dist/js/bootstrap.esm.js';
+
 import view, { loadingBody } from './view/app';
 
 export default async function startApp(element: HTMLElement) {

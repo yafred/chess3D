@@ -4,10 +4,8 @@
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "moduleResolution": "bundler",
-    "target": "ES2017",
+    "target": "ES2022",
     "module": "esnext",
-    "lib": ["DOM", "ES2019"],
-    "types": ["vite/client", "node"],
-    "skipLibCheck": true
+    "lib": ["DOM", "ES2019"]
   }
 }

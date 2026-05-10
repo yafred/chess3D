@@ -27,7 +27,7 @@ const renderNavBar = (ctrl: Ctrl) =>
         {
           attrs: href('/'),
         },
-        'lichess3D',
+        '(li)chess3D',
       ),
       h(
         'button.navbar-toggler',

@@ -4,21 +4,17 @@ Play on [Lichess](https://lichess.org/) using a 3D model and the Lichess public 
 
 ## Run it on your machine
 
-1. Clone https://github.com/yafred/chess3D 
+1. Clone https://github.com/yafred/chess3D
 1. `cd chess3D`
 1. `pnpm install`
 1. `pnpm run build`
 1. `pnpm run serve`
 
-## Vite development server 
+## Vite development server
+
 1. `cd chess3D`
 1. `pnpm run dev`
 
 ## Lichess api-demo
 
 This app is based on [Lichess OAuth demo](https://github.com/lichess-org/api-demo)
-
-
-
-
-

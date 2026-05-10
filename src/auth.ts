@@ -6,7 +6,7 @@ import { BASE_PATH } from './routing';
 export const lichessHost = 'https://lichess.org';
 // export const lichessHost = 'http://l.org';
 export const scopes = ['board:play', 'puzzle:read', 'puzzle:write'];
-export const clientId = 'lichess-lichess3D';
+export const clientId = 'yafred-chess3D';
 export const clientUrl = `${location.protocol}//${location.host}${BASE_PATH || '/'}`;
 
 export interface Me {
