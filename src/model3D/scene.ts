@@ -1,6 +1,6 @@
-import  { type Api } from '@lichess-org/chessground/api';
-import  { type Config } from '@lichess-org/chessground/config';
-import  { type Key } from '@lichess-org/chessground/types';
+import { type Api } from '@lichess-org/chessground/api';
+import { type Config } from '@lichess-org/chessground/config';
+import { type Key } from '@lichess-org/chessground/types';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { type GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -75,7 +75,9 @@ export function start3D(sceneRoot: HTMLElement, config: Config): Api {
   scene.add(a1Marker);
 
   function setOrientation(orientation: 'white' | 'black' | undefined) {
-    if (!orientation || orientation === currentOrientation) {return;}
+    if (!orientation || orientation === currentOrientation) {
+      return;
+    }
     const azimuth = orientation === 'white' ? whiteAzimuthAngle : whiteAzimuthAngle + Math.PI;
     const normalizedAzimuth = THREE.MathUtils.euclideanModulo(azimuth + Math.PI, Math.PI * 2) - Math.PI;
 
@@ -134,7 +136,9 @@ export function start3D(sceneRoot: HTMLElement, config: Config): Api {
     interactionController.setMoveAttemptCallback(uci => {
       const from = uci.slice(0, 2) as Key;
       const to = uci.slice(2, 4) as Key;
-      if (allowedMoveDests && !allowedMoveDests.get(from)?.includes(to)) {return false;}
+      if (allowedMoveDests && !allowedMoveDests.get(from)?.includes(to)) {
+        return false;
+      }
       config.events?.move?.(from, to);
       return true;
     });

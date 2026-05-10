@@ -4,7 +4,7 @@ import { Chess } from 'chessops';
 import { chessgroundDests } from 'chessops/compat';
 import { makeFen, parseFen } from 'chessops/fen';
 import { parseSan } from 'chessops/san';
-import  { type NormalMove } from 'chessops/types';
+import { type NormalMove } from 'chessops/types';
 import { makeUci, parseSquare, parseUci } from 'chessops/util';
 
 import { type Ctrl } from './ctrl';
@@ -72,7 +72,9 @@ export class PuzzleCtrl implements BoardCtrl {
     const beforeMoveFen = makeFen(this.chess.toSetup());
     const beforeMoveLastMove = this.lastMove;
     const move = parseUci(`${orig}${dest}`);
-    if (!move) {return;}
+    if (!move) {
+      return;
+    }
 
     const normalMove = move as NormalMove;
     const from = parseSquare(orig);
@@ -93,7 +95,9 @@ export class PuzzleCtrl implements BoardCtrl {
 
     // Compare move to solution after 200ms
     setTimeout(() => {
-      if (!this.puzzle) {return;}
+      if (!this.puzzle) {
+        return;
+      }
       const userMoveUci = makeUci(normalMove);
       const expectedMove = this.puzzle.solution[this.solutionIndex];
 
@@ -138,7 +142,9 @@ export class PuzzleCtrl implements BoardCtrl {
 
     for (let i = 0; i < Math.min(firstMoveOfPuzzle, moves.length); i++) {
       const move = parseSan(chess, moves[i]);
-      if (!move) {return [undefined, chess];}
+      if (!move) {
+        return [undefined, chess];
+      }
 
       const uci = makeUci(move);
       if (uci.length >= 4 && uci[1] !== '@') {
@@ -198,7 +204,9 @@ export class PuzzleCtrl implements BoardCtrl {
   };
 
   markAsSolved = async (solved: boolean) => {
-    if (!this.puzzle) {return;}
+    if (!this.puzzle) {
+      return;
+    }
     await this.root.auth.fetchBody(`/api/puzzle/batch/mix`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },

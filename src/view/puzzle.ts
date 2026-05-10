@@ -71,7 +71,9 @@ const renderButtons = (ctrl: PuzzleCtrl) =>
           on: {
             click() {
               const id = ctrl.puzzleId.trim();
-              if (id) {ctrl.puzzleById(id);}
+              if (id) {
+                ctrl.puzzleById(id);
+              }
             },
           },
         },

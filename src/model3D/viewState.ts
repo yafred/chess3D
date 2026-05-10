@@ -1,5 +1,5 @@
 import type * as THREE from 'three';
-import  { type OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { type OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 interface PersistedViewState {
   cameraPosition: [number, number, number];
@@ -36,7 +36,9 @@ export function createViewStatePersistence({
   function getStoredViewState(): PersistedViewState | undefined {
     try {
       const rawState = window.localStorage.getItem(storageKey);
-      if (!rawState) {return undefined;}
+      if (!rawState) {
+        return undefined;
+      }
       const parsedState = JSON.parse(rawState) as Partial<PersistedViewState>;
 
       if (
@@ -85,7 +87,9 @@ export function createViewStatePersistence({
 
   function restore(): boolean {
     const storedState = getStoredViewState();
-    if (!storedState) {return false;}
+    if (!storedState) {
+      return false;
+    }
 
     camera.position.set(...storedState.cameraPosition);
     camera.zoom = storedState.cameraZoom;
