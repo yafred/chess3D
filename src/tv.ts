@@ -54,7 +54,7 @@ export default class TvCtrl implements BoardCtrl {
   player = (color: Color) => this.game.players[this.game.players[0].color === color ? 0 : 1];
 
   static open = (root: Ctrl): Promise<TvCtrl> =>
-    new Promise<TvCtrl>(resolve => {
+    new Promise<TvCtrl>((resolve, reject) => {
       let ctrl: TvCtrl;
       let stream: Stream;
       const handler = (msg: any) => {
@@ -67,9 +67,12 @@ export default class TvCtrl implements BoardCtrl {
           resolve(ctrl);
         }
       };
-      void (async () => {
-        stream = await root.auth.openStream('/api/tv/feed', {}, handler);
-      })();
+      void root.auth
+        .openStream('/api/tv/feed', {}, handler)
+        .then(openedStream => {
+          stream = openedStream;
+        })
+        .catch(reject);
     });
 
   chessgroundConfig = () => {
@@ -84,7 +87,7 @@ export default class TvCtrl implements BoardCtrl {
       fen: this.game.fen,
       lastMove,
       turnColor: chess.turn,
-      check: !!chess.isCheck(),
+      check: chess.isCheck(),
       viewOnly: true,
       movable: { free: false },
       drawable: { visible: false },
