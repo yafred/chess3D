@@ -4,18 +4,11 @@
   "printWidth": 110,
   "arrowParens": "avoid",
   "endOfLine": "lf",
-  "ignorePatterns": ["**/dist", "README.md", "index.js", "style.css"],
+  "ignorePatterns": ["**/dist"],
   "sortPackageJson": false,
   "sortImports": {
-    "customGroups": [
-      {
-        "groupName": "libs",
-        "elementNamePattern": ["lib", "lib/**"]
-      }
-    ],
     "groups": [
       ["builtin", "external"],
-      ["libs"],
       ["internal", "subpath"],
       ["parent", "sibling", "index"],
       "style",

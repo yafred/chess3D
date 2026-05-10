@@ -4,10 +4,12 @@
   "license": "MIT",
   "scripts": {
     "format": "oxfmt",
+    "lint": "oxlint",
     "dev": "vite",
     "dev:full": "concurrently -k -n chessground,app \"pnpm --dir ../chessground exec tsc --sourceMap --declaration --watch\" \"vite\"",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "tsc": "tsc --noEmit"
   },
   "dependencies": {
     "@bity/oauth2-auth-code-pkce": "^2",
@@ -24,6 +26,8 @@
     "@types/three": "^0.183.1",
     "concurrently": "^9.2.1",
     "oxfmt": "^0.45.0",
+    "oxlint": "^1.63.0",
+    "oxlint-tsgolint": "^0.22.1",
     "sass": "^1",
     "tslib": "^2",
     "typescript": "^5.6.3",
