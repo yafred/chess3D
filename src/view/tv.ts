@@ -1,9 +1,9 @@
-import { Color } from '@lichess-org/chessground/types';
+import { type Color } from '@lichess-org/chessground/types';
 import { opposite } from '@lichess-org/chessground/util';
 import { h } from 'snabbdom';
 
-import { Renderer } from '../interfaces';
-import TvCtrl from '../tv';
+import { type Renderer } from '../interfaces';
+import type TvCtrl from '../tv';
 import { renderBoard, renderPlayer } from './board';
 import { clockContent } from './clock';
 
@@ -27,7 +27,7 @@ const renderTvPlayer = (ctrl: TvCtrl, color: Color) => {
   const p = ctrl.player(color);
   const clock = clockContent(
     p.seconds && p.seconds * 1000,
-    color == ctrl.chess.turn ? ctrl.lastUpdateAt - Date.now() : 0,
+    color === ctrl.chess.turn ? ctrl.lastUpdateAt - Date.now() : 0,
   );
   return renderPlayer(ctrl, color, clock, p.user.name, p.user.title, p.rating);
 };

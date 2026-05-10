@@ -1,6 +1,6 @@
 import type * as THREE from 'three';
 
-const pieceMap: { [key: string]: string } = {
+const pieceMap: Record<string, string> = {
   P: 'Pawn',
   N: 'Knight',
   B: 'Bishop',

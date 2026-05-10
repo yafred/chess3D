@@ -1,9 +1,9 @@
 import { Chessground } from '@lichess-org/chessground';
 import { h } from 'snabbdom';
 
-import { Ctrl } from '../ctrl';
-import { Game, Renderer } from '../interfaces';
-import OngoingGames from '../ongoingGames';
+import { type Ctrl } from '../ctrl';
+import { type Game, type Renderer } from '../interfaces';
+import type OngoingGames from '../ongoingGames';
 import { href } from '../routing';
 
 export const renderHome: Renderer = ctrl => (ctrl.auth.me ? userHome(ctrl) : anonHome());

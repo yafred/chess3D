@@ -1,8 +1,12 @@
-import { h, VNode } from 'snabbdom';
+import { h, type VNode } from 'snabbdom';
 
 export function clockContent(time?: number, decay?: number): VNode {
-  if (!time && time !== 0) return h('span', '-');
-  if (time == 2147483647) return h('span');
+  if (!time && time !== 0) {
+    return h('span', '-');
+  }
+  if (time === 2_147_483_647) {
+    return h('span');
+  }
 
   const millis = time + (decay || 0);
 
@@ -24,12 +28,14 @@ const correspondence = (ms: number) => {
     seconds = prefixInteger(date.getSeconds(), 2);
   let hours: number,
     str = '';
-  if (ms >= 86400 * 1000) {
+  if (ms >= 86_400 * 1000) {
     // days : hours
     const days = date.getUTCDate() - 1;
     hours = date.getUTCHours();
     str += (days === 1 ? 'One day' : `${days} days`) + ' ';
-    if (hours !== 0) str += `${hours} hours`;
+    if (hours !== 0) {
+      str += `${hours} hours`;
+    }
   } else if (ms >= 3600 * 1000) {
     // hours : minutes
     hours = date.getUTCHours();

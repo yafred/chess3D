@@ -1,9 +1,9 @@
 import { Chessground } from '@lichess-org/chessground';
-import type { Config as CgConfig } from '@lichess-org/chessground/config';
-import { Color } from 'chessops';
-import { h, VNode } from 'snabbdom';
+import { type Config as CgConfig } from '@lichess-org/chessground/config';
+import { type Color } from 'chessops';
+import { h, type VNode } from 'snabbdom';
 
-import { BoardCtrl } from '../game';
+import { type BoardCtrl } from '../game';
 import { start3D } from '../model3D/scene';
 
 export const renderBoard = (ctrl: BoardCtrl) =>
@@ -40,7 +40,7 @@ export const renderPlayer = (
     'div.game-page__player',
     {
       class: {
-        turn: ctrl.chess.turn == color,
+        turn: ctrl.chess.turn === color,
       },
     },
     [

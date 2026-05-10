@@ -1,7 +1,7 @@
 import page from 'page';
 
-import { Ctrl } from './ctrl';
-import { Stream } from './ndJsonStream';
+import { type Ctrl } from './ctrl';
+import { type Stream } from './ndJsonStream';
 import { formData } from './util';
 
 export default class ChallengeCtrl {
@@ -14,7 +14,9 @@ export default class ChallengeCtrl {
 
   awaitClose = async () => {
     await this.stream.closePromise;
-    if (this.root.page == 'challenge') page('/');
+    if (this.root.page === 'challenge') {
+      page('/');
+    }
   };
 
   onUnmount = () => this.stream.close();

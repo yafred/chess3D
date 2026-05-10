@@ -1,8 +1,8 @@
 import { Auth } from './auth';
 import ChallengeCtrl from './challenge';
 import { GameCtrl } from './game';
-import { Page } from './interfaces';
-import { Stream } from './ndJsonStream';
+import { type Page } from './interfaces';
+import { type Stream } from './ndJsonStream';
 import OngoingGames from './ongoingGames';
 import { PuzzleCtrl } from './puzzle';
 import { SeekCtrl } from './seek';

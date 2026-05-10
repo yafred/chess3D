@@ -1,4 +1,4 @@
-import { init, attributesModule, eventListenersModule, classModule } from 'snabbdom';
+import { attributesModule, classModule, eventListenersModule, init } from 'snabbdom';
 
 import { Ctrl } from './ctrl';
 import routing from './routing';

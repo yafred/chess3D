@@ -1,11 +1,11 @@
-import { Api as CgApi } from '@lichess-org/chessground/api';
-import { Key } from '@lichess-org/chessground/types';
-import { Chess, Color } from 'chessops';
+import { type Api as CgApi } from '@lichess-org/chessground/api';
+import { type Key } from '@lichess-org/chessground/types';
+import { Chess, type Color } from 'chessops';
 import { parseFen } from 'chessops/fen';
 
-import { Ctrl } from './ctrl';
-import { BoardCtrl } from './game';
-import { Stream } from './ndJsonStream';
+import { type Ctrl } from './ctrl';
+import { type BoardCtrl } from './game';
+import { type Stream } from './ndJsonStream';
 
 const SCENE_ASSET_URL = new URL('../scene.glb', import.meta.url).href;
 
@@ -51,22 +51,25 @@ export default class TvCtrl implements BoardCtrl {
     clearInterval(this.redrawInterval);
   };
 
-  player = (color: Color) => this.game.players[this.game.players[0].color == color ? 0 : 1];
+  player = (color: Color) => this.game.players[this.game.players[0].color === color ? 0 : 1];
 
   static open = (root: Ctrl): Promise<TvCtrl> =>
-    new Promise<TvCtrl>(async resolve => {
+    new Promise<TvCtrl>(resolve => {
       let ctrl: TvCtrl;
       let stream: Stream;
       const handler = (msg: any) => {
-        if (ctrl) ctrl.handle(msg);
-        else {
+        if (ctrl) {
+          ctrl.handle(msg);
+        } else {
           // Gets the first game object from the first message of the stream,
           // make a TvCtrl from it, then forward the next messages to the ctrl
           ctrl = new TvCtrl(stream, msg.d, root);
           resolve(ctrl);
         }
       };
-      stream = await root.auth.openStream('/api/tv/feed', {}, handler);
+      void (async () => {
+        stream = await root.auth.openStream('/api/tv/feed', {}, handler);
+      })();
     });
 
   chessgroundConfig = () => {

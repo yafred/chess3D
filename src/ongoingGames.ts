@@ -1,6 +1,6 @@
 import page from 'page';
 
-import { Game } from './interfaces';
+import { type Game } from './interfaces';
 
 export default class OngoingGames {
   games: Game[] = [];
@@ -11,10 +11,14 @@ export default class OngoingGames {
     if (game.compat.board) {
       this.games.push(game);
       if (!this.autoStart.has(game.id)) {
-        if (!game.hasMoved) page(`/game/${game.gameId}`);
+        if (!game.hasMoved) {
+          page(`/game/${game.gameId}`);
+        }
       }
       this.autoStart.add(game.id);
-    } else console.log(`Skipping game ${game.gameId}, not board compatible`);
+    } else {
+      console.log(`Skipping game ${game.gameId}, not board compatible`);
+    }
   };
 
   onFinish = (game: Game) => this.remove(game);
@@ -24,6 +28,6 @@ export default class OngoingGames {
   };
 
   private remove = (game: Game) => {
-    this.games = this.games.filter(g => g.gameId != game.id);
+    this.games = this.games.filter(g => g.gameId !== game.id);
   };
 }

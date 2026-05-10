@@ -23,8 +23,10 @@ export const readStream = (name: string, response: Response, handler: Handler): 
   const loop: () => Promise<void> = () =>
     stream.read().then(({ done, value }) => {
       if (done) {
-        if (buf.length > 0) process(buf);
-        return;
+        if (buf.length > 0) {
+          process(buf);
+        }
+        return undefined;
       } else {
         const chunk = decoder.decode(value, {
           stream: true,
@@ -33,7 +35,9 @@ export const readStream = (name: string, response: Response, handler: Handler): 
 
         const parts = buf.split(matcher);
         buf = parts.pop() || '';
-        for (const i of parts.filter(p => p)) process(i);
+        for (const i of parts.filter(Boolean)) {
+          process(i);
+        }
         return loop();
       }
     });

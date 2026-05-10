@@ -1,9 +1,9 @@
-import { Color, Role } from '@lichess-org/chessground/types';
+import { type Color, type Role } from '@lichess-org/chessground/types';
 import { opposite } from '@lichess-org/chessground/util';
 import { h } from 'snabbdom';
 
-import { GameCtrl } from '../game';
-import { Renderer } from '../interfaces';
+import { type GameCtrl } from '../game';
+import { type Renderer } from '../interfaces';
 import { renderBoard, renderPlayer } from './board';
 
 import '../../scss/_game.scss';
@@ -62,7 +62,9 @@ const renderButtons = (ctrl: GameCtrl) =>
         attrs: { type: 'button', disabled: !ctrl.playing() },
         on: {
           click() {
-            if (confirm('Confirm?')) ctrl.resign();
+            if (confirm('Confirm?')) {
+              ctrl.resign();
+            }
           },
         },
       },
@@ -76,7 +78,7 @@ const renderGamePlayer = (ctrl: GameCtrl, color: Color) => {
   const p = ctrl.game[color];
   const clock = clockContent(
     ctrl.timeOf(color),
-    color == ctrl.chess.turn && ctrl.chess.fullmoves > 1 && ctrl.playing()
+    color === ctrl.chess.turn && ctrl.chess.fullmoves > 1 && ctrl.playing()
       ? ctrl.lastUpdateAt - Date.now()
       : 0,
   );

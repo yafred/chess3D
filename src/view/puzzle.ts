@@ -1,14 +1,11 @@
-import { Color, Role } from '@lichess-org/chessground/types';
-import { opposite } from '@lichess-org/chessground/util';
-import { parseSquare } from 'chessops/util';
+import { type Role } from '@lichess-org/chessground/types';
 import { h } from 'snabbdom';
 
-import { Renderer } from '../interfaces';
-import { PuzzleCtrl } from '../puzzle';
+import { type Renderer } from '../interfaces';
+import { type PuzzleCtrl } from '../puzzle';
 
 import '../../scss/_puzzle.scss';
-import { renderBoard, renderPlayer } from './board';
-import { clockContent } from './clock';
+import { renderBoard } from './board';
 
 export const renderPuzzle: (ctrl: PuzzleCtrl) => Renderer = ctrl => _ => [
   h(`div.game-page.game-page`, [h('aside.game-page__left-float', [renderButtons(ctrl)]), renderBoard(ctrl)]),
@@ -74,7 +71,7 @@ const renderButtons = (ctrl: PuzzleCtrl) =>
           on: {
             click() {
               const id = ctrl.puzzleId.trim();
-              if (id) ctrl.puzzleById(id);
+              if (id) {ctrl.puzzleById(id);}
             },
           },
         },

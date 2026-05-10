@@ -1,9 +1,9 @@
 import { h } from 'snabbdom';
 
-import ChallengeCtrl from '../challenge';
-import { Renderer } from '../interfaces';
+import type ChallengeCtrl from '../challenge';
+import { type Renderer } from '../interfaces';
 import { url } from '../routing';
-import { spinner } from './app';
+import { spinner } from './loading';
 
 import '../../scss/_challenge.scss';
 

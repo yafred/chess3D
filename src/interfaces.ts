@@ -1,12 +1,10 @@
-import { VNode } from 'snabbdom';
+import { type VNode } from 'snabbdom';
 
-import { Ctrl } from './ctrl';
+import { type Ctrl } from './ctrl';
 
 export type Page = 'home' | 'game' | 'seek' | 'challenge' | 'tv' | 'puzzle';
 
 export type MaybeVNodes = (VNode | string | undefined)[];
 export type Renderer = (ctrl: Ctrl) => MaybeVNodes;
 
-export interface Game {
-  [key: string]: any;
-}
+export type Game = Record<string, any>;

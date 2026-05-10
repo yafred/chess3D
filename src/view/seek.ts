@@ -1,9 +1,9 @@
 import { h } from 'snabbdom';
 
-import { Renderer } from '../interfaces';
+import { type Renderer } from '../interfaces';
 import { url } from '../routing';
-import { SeekCtrl } from '../seek';
-import { spinner } from './app';
+import { type SeekCtrl } from '../seek';
+import { spinner } from './loading';
 
 import '../../scss/_seek.scss';
 

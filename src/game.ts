@@ -1,14 +1,14 @@
-import { Api as CgApi } from '@lichess-org/chessground/api';
-import { Config as CgConfig } from '@lichess-org/chessground/config';
-import { Color, Key, Role } from '@lichess-org/chessground/types';
+import { type Api as CgApi } from '@lichess-org/chessground/api';
+import { type Config as CgConfig } from '@lichess-org/chessground/config';
+import { type Color, type Key, type Role } from '@lichess-org/chessground/types';
 import { Chess, defaultSetup } from 'chessops';
 import { chessgroundDests } from 'chessops/compat';
 import { makeFen, parseFen } from 'chessops/fen';
 import { opposite, parseSquare, parseUci } from 'chessops/util';
 
-import { Ctrl } from './ctrl';
-import { Game } from './interfaces';
-import { Stream } from './ndJsonStream';
+import { type Ctrl } from './ctrl';
+import { type Game } from './interfaces';
+import { type Stream } from './ndJsonStream';
 
 const SCENE_ASSET_URL = new URL('../scene.glb', import.meta.url).href;
 
@@ -35,7 +35,7 @@ export class GameCtrl implements BoardCtrl {
     private root: Ctrl,
   ) {
     this.game = game;
-    this.pov = this.game.black.id == this.root.auth.me?.id ? 'black' : 'white';
+    this.pov = this.game.black.id === this.root.auth.me?.id ? 'black' : 'white';
     this.onUpdate();
     this.redrawInterval = setInterval(root.redraw, 100);
   }
@@ -47,15 +47,17 @@ export class GameCtrl implements BoardCtrl {
 
   private onUpdate = () => {
     const setup =
-      this.game.initialFen == 'startpos' ? defaultSetup() : parseFen(this.game.initialFen).unwrap();
+      this.game.initialFen === 'startpos' ? defaultSetup() : parseFen(this.game.initialFen).unwrap();
     this.chess = Chess.fromSetup(setup).unwrap();
-    const moves = this.game.state.moves.split(' ').filter((m: string) => m);
+    const moves = this.game.state.moves.split(' ').filter(Boolean);
     moves.forEach((uci: string) => this.chess.play(parseUci(uci)!));
     const lastMove = moves[moves.length - 1];
-    this.lastMove = lastMove && [lastMove.substr(0, 2) as Key, lastMove.substr(2, 2) as Key];
+    this.lastMove = lastMove && [lastMove.slice(0, 2) as Key, lastMove.slice(2, 4) as Key];
     this.lastUpdateAt = Date.now();
     this.ground?.set(this.chessgroundConfig());
-    if (this.chess.turn == this.pov) this.ground?.playPremove();
+    if (this.chess.turn === this.pov) {
+      this.ground?.playPremove();
+    }
   };
 
   setPromotionRole = (role: Role) => {
@@ -82,7 +84,7 @@ export class GameCtrl implements BoardCtrl {
     await this.root.auth.fetchBody(`/api/board/game/${this.game.id}/resign`, { method: 'post' });
   };
 
-  playing = () => this.game.state.status == 'started';
+  playing = () => this.game.state.status === 'started';
 
   chessgroundConfig = () => ({
     model3D: {
@@ -106,19 +108,22 @@ export class GameCtrl implements BoardCtrl {
   setGround = (cg: CgApi) => (this.ground = cg);
 
   static open = (root: Ctrl, id: string): Promise<GameCtrl> =>
-    new Promise<GameCtrl>(async resolve => {
+    new Promise<GameCtrl>(resolve => {
       let ctrl: GameCtrl;
       let stream: Stream;
       const handler = (msg: any) => {
-        if (ctrl) ctrl.handle(msg);
-        else {
+        if (ctrl) {
+          ctrl.handle(msg);
+        } else {
           // Gets the gameFull object from the first message of the stream,
           // make a GameCtrl from it, then forward the next messages to the ctrl
           ctrl = new GameCtrl(msg, stream, root);
           resolve(ctrl);
         }
       };
-      stream = await root.auth.openStream(`/api/board/game/stream/${id}`, {}, handler);
+      void (async () => {
+        stream = await root.auth.openStream(`/api/board/game/stream/${id}`, {}, handler);
+      })();
     });
 
   private handle = (msg: any) => {
