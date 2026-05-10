@@ -1,9 +1,8 @@
 import page from 'page';
 
-import { BASE_PATH, href, url } from './basePath';
 import { type Ctrl } from './ctrl';
 
-export default function routing(ctrl: Ctrl) {
+export default function Routing(ctrl: Ctrl) {
   page.base(BASE_PATH);
   page('/', async ctx => {
     if (ctx.querystring.includes('code=liu_')) {
@@ -28,4 +27,7 @@ export default function routing(ctrl: Ctrl) {
   page({ hashbang: true });
 }
 
-export { href, url };
+export const BASE_PATH = location.pathname.replace(/\/$/, '');
+
+export const url = (path: string) => `${BASE_PATH}${path}`;
+export const href = (path: string) => ({ href: url(path) });

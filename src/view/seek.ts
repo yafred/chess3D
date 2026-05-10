@@ -3,7 +3,7 @@ import { h } from 'snabbdom';
 import { type Renderer } from '../interfaces';
 import { url } from '../routing';
 import { type SeekCtrl } from '../seek';
-import { spinner } from './loading';
+import { spinner } from './spinner';
 
 import '../../scss/_seek.scss';
 

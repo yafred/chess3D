@@ -6,9 +6,9 @@ import { renderChallenge } from './challenge';
 import { renderGame } from './game';
 import { renderHome } from './home';
 import layout from './layout';
-import { loadingBody } from './loading';
 import { renderPuzzle } from './puzzle';
 import { renderSeek } from './seek';
+import { spinner } from './spinner';
 import { renderTv } from './tv';
 
 export default function view(ctrl: Ctrl): VNode {
@@ -41,4 +41,4 @@ const renderLoading: Renderer = _ => [loadingBody()];
 
 const renderNotFound: Renderer = _ => [h('h1', 'Not found')];
 
-export { loadingBody } from './loading';
+export const loadingBody = () => h('div.loading', spinner());

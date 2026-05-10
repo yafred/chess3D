@@ -3,7 +3,7 @@ import { h } from 'snabbdom';
 import type ChallengeCtrl from '../challenge';
 import { type Renderer } from '../interfaces';
 import { url } from '../routing';
-import { spinner } from './loading';
+import { spinner } from './spinner';
 
 import '../../scss/_challenge.scss';
 
