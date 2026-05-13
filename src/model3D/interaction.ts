@@ -531,6 +531,7 @@ export function setupPieceInteraction({
         hasMoved: false,
       };
       controls.enabled = false;
+      hoverController.setPinnedPiece(piece);
       hoverController.setIgnoredPiece(piece);
       hoverController.updateFromPointerEvent(event);
       renderer.domElement.setPointerCapture(event.pointerId);

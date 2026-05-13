@@ -114,7 +114,7 @@ export function createPieceHoverController(
     hovered = piece;
     hoveredMode = mode;
     hovered.userData.originalColor = material.color.clone();
-    const highlightColor = mode === 'pinned' ? pinnedHighlightColor : hoverHighlightColor;
+    const highlightColor = mode === 'hover' ? hoverHighlightColor : pinnedHighlightColor;
     material.color.copy(highlightColor);
   }
 
