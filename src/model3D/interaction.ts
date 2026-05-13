@@ -412,7 +412,10 @@ export function setupPieceInteraction({
     updatePointerNdc(event);
     pointerRaycaster.setFromCamera(pointerNdc, camera);
     const hasBoardIntersection = pointerRaycaster.ray.intersectPlane(boardPlane, boardPoint) !== null;
-    if (!hasBoardIntersection || !isWithinBoard(boardPoint.x + dragState.pointerOffsetX, boardPoint.z + dragState.pointerOffsetZ)) {
+    if (
+      !hasBoardIntersection ||
+      !isWithinBoard(boardPoint.x + dragState.pointerOffsetX, boardPoint.z + dragState.pointerOffsetZ)
+    ) {
       return;
     }
 
