@@ -24,7 +24,10 @@ export class Auth {
     scopes,
     redirectUrl: clientUrl,
     onAccessTokenExpiry: refreshAccessToken => refreshAccessToken(),
-    onInvalidGrant: console.warn,
+    onInvalidGrant: () => {
+      console.warn('Invalid grant - clearing stale token');
+      localStorage.clear();
+    },
   });
   me?: Me;
 
@@ -87,6 +90,12 @@ export class Auth {
 
   private fetchResponse = async (path: string, config: any = {}) => {
     const res = await (this.me?.httpClient || window.fetch)(`${lichessHost}${path}`, config);
+    if (res.status === 401) {
+      localStorage.clear();
+      this.me = undefined;
+      location.reload();
+      throw new Error('Unauthorized - session cleared');
+    }
     if (res.error || !res.ok) {
       const err = `${res.error} ${res.status} ${res.statusText}`;
       alert(err);
