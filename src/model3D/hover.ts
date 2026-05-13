@@ -193,6 +193,21 @@ export function createPieceHoverController(
         clearHoveredState();
       }
 
+      if (draggedPiece) {
+        const squareX = Math.round(draggedPiece.position.x + 3.5) - 3.5;
+        const squareZ = Math.round(draggedPiece.position.z + 3.5) - 3.5;
+        if (Math.abs(squareX) <= 4 && Math.abs(squareZ) <= 4) {
+          squareHighlight.position.x = squareX;
+          squareHighlight.position.z = squareZ;
+          squareHighlight.visible = true;
+        } else {
+          squareHighlight.visible = false;
+        }
+
+        highlightPiece(draggedPiece, 'drag');
+        return;
+      }
+
       raycaster.setFromCamera(mouse, camera);
       let targetPiece: THREE.Mesh | null = null;
       let hasHighlightedSquare = false;
@@ -236,11 +251,6 @@ export function createPieceHoverController(
         } else {
           squareHighlight.visible = false;
         }
-      }
-
-      if (draggedPiece) {
-        highlightPiece(draggedPiece, 'drag');
-        return;
       }
 
       if (pinnedPiece) {
