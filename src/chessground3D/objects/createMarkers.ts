@@ -22,4 +22,3 @@ export function createA1Marker() {
 export function createH8Marker() {
   return createCornerMarker('#525252', 3.87, -3.87);
 }
-
