@@ -3,7 +3,7 @@ import { type Config } from '@lichess-org/chessground/config';
 import { type Key } from '@lichess-org/chessground/types';
 import * as THREE from 'three';
 
-import { fenToScene } from './fen.js';
+import { fenToScene } from './logic/fen.js';
 import { createPieceHoverController } from './hover.js';
 import { setupPieceInteraction } from './interaction.js';
 import { createA1Marker } from './objects/createA1Marker.js';
