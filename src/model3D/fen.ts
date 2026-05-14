@@ -1,4 +1,4 @@
-import type * as THREE from 'three';
+import * as THREE from 'three';
 
 const pieceMap: Record<string, string> = {
   P: 'Pawn',
@@ -19,6 +19,13 @@ export function fenToScene(
   for (let i = scene.children.length - 1; i >= 0; i--) {
     const child = scene.children[i];
     if (child.userData?.isFenClone) {
+      if (child instanceof THREE.Mesh) {
+        if (Array.isArray(child.material)) {
+          child.material.forEach(material => material.dispose());
+        } else {
+          child.material.dispose();
+        }
+      }
       scene.remove(child);
     }
   }
