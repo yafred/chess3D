@@ -10,7 +10,7 @@ import { createPieceHoverController } from './hover.js';
 import { setupPieceInteraction } from './interaction.js';
 import { createViewStatePersistence } from './viewState.js';
 
-const SCENE_ASSET_URL = new URL('../../scene.glb', import.meta.url).href;
+const SCENE_ASSET_URL = new URL('scene.glb', import.meta.url).href;
 
 export function start3D(sceneRoot: HTMLElement, config: Config): Api {
   // Scene setup
