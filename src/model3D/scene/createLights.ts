@@ -1,4 +1,3 @@
-import { dir } from 'console';
 import * as THREE from 'three';
 
 export function createLights() {

@@ -2,7 +2,6 @@ import { type Api } from '@lichess-org/chessground/api';
 import { type Config } from '@lichess-org/chessground/config';
 import { type Key } from '@lichess-org/chessground/types';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { type GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import { fenToScene } from './fen.js';
@@ -162,14 +161,6 @@ export function start3D(sceneRoot: HTMLElement, config: Config): Api {
     renderer.render(scene, camera);
   }
   animate();
-
-  // Utils
-  function getSceneRootSize() {
-    return {
-      width: sceneRoot.clientWidth || window.innerWidth,
-      height: sceneRoot.clientHeight || window.innerHeight,
-    };
-  }
 
   // API implementation
   return {
