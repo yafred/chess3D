@@ -3,9 +3,9 @@ import { type Config } from '@lichess-org/chessground/config';
 import { type Key } from '@lichess-org/chessground/types';
 import * as THREE from 'three';
 
-import { createPieceHoverController } from './hover.js';
-import { setupPieceInteraction } from './interaction.js';
+import { setupPieceInteraction } from './logic/interaction.js';
 import { fenToScene } from './logic/fen.js';
+import { createPieceHoverController } from './logic/hover.js';
 import { createA1Marker } from './objects/createA1Marker.js';
 import { createPieceTemplates } from './objects/createPieceTemplates.js';
 import { createCamera } from './scene/createCamera.js';
