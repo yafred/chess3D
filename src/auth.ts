@@ -3,7 +3,7 @@ import { type HttpClient, OAuth2AuthCodePKCE } from '@bity/oauth2-auth-code-pkce
 import { readStream } from './ndJsonStream';
 import { BASE_PATH } from './routing';
 
-export const lichessHost = 'https://lichess.org';
+export const lichessHost = 'http://localhost:9663';
 // export const lichessHost = 'http://l.org';
 export const scopes = ['board:play', 'puzzle:read', 'puzzle:write'];
 export const clientId = 'yafred-chess3D';

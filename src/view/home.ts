@@ -1,7 +1,7 @@
-import { Chessground } from '@lichess-org/chessground';
 import { h } from 'snabbdom';
 
 import { type Ctrl } from '../ctrl';
+import { Chessground } from '../ground';
 import { type Game, type Renderer } from '../interfaces';
 import type OngoingGames from '../ongoingGames';
 import { href } from '../routing';
@@ -57,26 +57,22 @@ const renderGameWidget = (game: Game) =>
         h('span.game-widget__opponent__name', game.opponent.username || 'Anon'),
         game.opponent.rating && h('span.game-widget__opponent__rating', game.opponent.rating),
       ]),
-      h(
-        'span.game-widget__board.cg-wrap',
-        {
-          hook: {
-            insert(vnode) {
-              const el = vnode.elm as HTMLElement;
-              Chessground(el, {
-                fen: game.fen,
-                orientation: game.color,
-                lastMove: game.lastMove.match(/.{1,2}/g),
-                viewOnly: true,
-                movable: { free: false },
-                drawable: { visible: false },
-                coordinates: false,
-              });
-            },
+      h('span.game-widget__board.cg-wrap', {
+        hook: {
+          insert(vnode) {
+            const el = vnode.elm as HTMLElement;
+            Chessground(el, {
+              fen: game.fen,
+              orientation: game.color,
+              lastMove: game.lastMove.match(/.{1,2}/g),
+              viewOnly: true,
+              movable: { free: false },
+              drawable: { visible: false },
+              coordinates: false,
+            });
           },
         },
-        'board',
-      ),
+      }),
     ],
   );
 
