@@ -8,15 +8,27 @@ import { type GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { fenToScene } from './fen.js';
 import { createPieceHoverController } from './hover.js';
 import { setupPieceInteraction } from './interaction.js';
+import { createA1Marker } from './objects/createA1Marker.js';
+import { createCamera } from './scene/createCamera.js';
+import { createLights } from './scene/createLights.js';
+import { createRenderer } from './scene/createRenderer.js';
+import { createScene } from './scene/createScene.js';
+import { createControls } from './systems/controls.js';
+import { handleResize } from './systems/resize.js';
 import { createViewStatePersistence } from './viewState.js';
 
-const SCENE_ASSET_URL = new URL('scene.glb', import.meta.url).href;
+const SCENE_ASSET_URL = new URL('./public/scene.glb', import.meta.url).href;
 
 export function start3D(sceneRoot: HTMLElement, config: Config): Api {
-  // Scene setup
-  const scene = new THREE.Scene();
-  scene.visible = false;
-  scene.background = new THREE.Color(0x40_40_40);
+  const scene = createScene();
+  const camera = createCamera(sceneRoot);
+  const renderer = createRenderer(sceneRoot);
+  const controls = createControls(camera, renderer.domElement);
+  const lights = createLights();
+  scene.add(lights);
+  const a1Marker = createA1Marker();
+  scene.add(a1Marker);
+  handleResize(sceneRoot, camera, renderer);
 
   const loader = new GLTFLoader();
   const materials = new Map();
@@ -27,55 +39,11 @@ export function start3D(sceneRoot: HTMLElement, config: Config): Api {
   let currentOrientation: 'white' | 'black' | undefined;
   let isViewOnly = !!config.viewOnly;
 
-  // Camera
-  const { width: initialWidth, height: initialHeight } = getSceneRootSize();
-  const camera = new THREE.PerspectiveCamera(45, initialWidth / initialHeight, 0.1, 100);
-  camera.position.set(0, 15, 8);
-  camera.zoom = 1.5;
-  camera.updateProjectionMatrix();
-
-  // Renderer
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(initialWidth, initialHeight);
-  sceneRoot.appendChild(renderer.domElement);
-
-  // Controls
-  const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.05;
-  // Only allow horizontal/X-axis rotation.
   const whiteAzimuthAngle = controls.getAzimuthalAngle();
   const setLockedAzimuth = (azimuth: number) => {
     controls.minAzimuthAngle = azimuth;
     controls.maxAzimuthAngle = azimuth;
   };
-  setLockedAzimuth(whiteAzimuthAngle);
-
-  // Lighting
-  const ambientLight = new THREE.HemisphereLight(0xff_ff_ff, 0x44_44_44, 2);
-  scene.add(ambientLight);
-  const light = new THREE.DirectionalLight(0xff_ff_ff, 0.5);
-  light.position.set(0, 1, 1);
-  light.target.position.set(0, 0, 0);
-  scene.add(light);
-  const light2 = new THREE.DirectionalLight(0xff_ff_ff, 0.5);
-  light2.position.set(0, 1, -1);
-  light2.target.position.set(0, 0, 0);
-  scene.add(light2);
-
-  const a1Marker = new THREE.Mesh(
-    new THREE.CircleGeometry(0.08, 20),
-    new THREE.MeshBasicMaterial({
-      color: 0xf0_f0_f0,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-    }),
-  );
-  a1Marker.rotation.x = -Math.PI / 2;
-  a1Marker.position.set(-3.87, 0.02, 3.87);
-  a1Marker.renderOrder = 7;
-  scene.add(a1Marker);
-
   function setOrientation(orientation: 'white' | 'black' | undefined) {
     if (!orientation || orientation === currentOrientation) {
       return;
@@ -110,14 +78,6 @@ export function start3D(sceneRoot: HTMLElement, config: Config): Api {
   }
 
   controls.addEventListener('change', viewStatePersistence.schedulePersist);
-
-  // Resize event
-  window.addEventListener('resize', () => {
-    const { width, height } = getSceneRootSize();
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-    renderer.setSize(width, height);
-  });
 
   // Set up piece hover and interaction
   const hoverController = createPieceHoverController(scene, camera, renderer.domElement);
