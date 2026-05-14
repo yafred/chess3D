@@ -1,5 +1,3 @@
-import { type Config } from '@lichess-org/chessground/config';
-import { type Key } from '@lichess-org/chessground/types';
 import * as THREE from 'three';
 
 import { fenToScene } from './logic/fen.js';
@@ -16,12 +14,30 @@ import { handleResize } from './systems/resize.js';
 
 const SCENE_ASSET_URL = new URL('./public/scene.glb', import.meta.url).href;
 
+type ChessColor = 'white' | 'black';
+type ChessKey = string;
+
+export interface ChessSceneConfig {
+  viewOnly?: boolean;
+  orientation?: ChessColor;
+  fen?: string;
+  lastMove?: readonly ChessKey[];
+  turnColor?: ChessColor;
+  movable?: {
+    color?: ChessColor | 'both';
+    dests?: Map<ChessKey, readonly ChessKey[]>;
+  };
+  events?: {
+    move?: (...args: any[]) => void;
+  };
+}
+
 export interface ChessScene {
-  set(config: Partial<Config>): void;
+  set(config: Partial<ChessSceneConfig>): void;
   destroy(): void;
 }
 
-export function createChessScene(sceneRoot: HTMLElement, config: Config): ChessScene {
+export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfig): ChessScene {
   const scene = createScene();
   const camera = createCamera(sceneRoot);
   const renderer = createRenderer(sceneRoot);
@@ -36,7 +52,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: Config): ChessS
   let pieces = new Map<string, THREE.Mesh>();
 
   const defaultFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
-  let currentOrientation: 'white' | 'black' | undefined;
+  let currentOrientation: ChessColor | undefined;
   let isViewOnly = !!config.viewOnly;
 
   const whiteAzimuthAngle = controls.getAzimuthalAngle();
@@ -44,7 +60,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: Config): ChessS
     controls.minAzimuthAngle = azimuth;
     controls.maxAzimuthAngle = azimuth;
   };
-  function setOrientation(orientation: 'white' | 'black' | undefined) {
+  function setOrientation(orientation: ChessColor | undefined) {
     if (!orientation || orientation === currentOrientation) {
       return;
     }
@@ -83,8 +99,8 @@ export function createChessScene(sceneRoot: HTMLElement, config: Config): ChessS
 
   if (config?.events?.move) {
     interactionController.setMoveAttemptCallback(uci => {
-      const from = uci.slice(0, 2) as Key;
-      const to = uci.slice(2, 4) as Key;
+      const from = uci.slice(0, 2) as ChessKey;
+      const to = uci.slice(2, 4) as ChessKey;
       if (allowedMoveDests && !allowedMoveDests.get(from)?.includes(to)) {
         return false;
       }
@@ -93,7 +109,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: Config): ChessS
     });
   }
 
-  function setAllowInteractionForColors(config: Config) {
+  function setAllowInteractionForColors(config: Partial<ChessSceneConfig>) {
     interactionController.setInteractionEnabled(!isViewOnly);
     if (isViewOnly) {
       interactionController.setAllowWhiteInteraction(false);
@@ -159,7 +175,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: Config): ChessS
         setOrientation(config.orientation);
       }
 
-      setAllowInteractionForColors(config as Config);
+      setAllowInteractionForColors(config);
     },
 
     destroy() {
