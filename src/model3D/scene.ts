@@ -3,9 +3,9 @@ import { type Config } from '@lichess-org/chessground/config';
 import { type Key } from '@lichess-org/chessground/types';
 import * as THREE from 'three';
 
-import { fenToScene } from './logic/fen.js';
 import { createPieceHoverController } from './hover.js';
 import { setupPieceInteraction } from './interaction.js';
+import { fenToScene } from './logic/fen.js';
 import { createA1Marker } from './objects/createA1Marker.js';
 import { createPieceTemplates } from './objects/createPieceTemplates.js';
 import { createCamera } from './scene/createCamera.js';
@@ -14,7 +14,6 @@ import { createRenderer } from './scene/createRenderer.js';
 import { createScene } from './scene/createScene.js';
 import { createControls } from './systems/controls.js';
 import { handleResize } from './systems/resize.js';
-import { createViewStatePersistence } from './viewState.js';
 
 const SCENE_ASSET_URL = new URL('./public/scene.glb', import.meta.url).href;
 
@@ -59,22 +58,9 @@ export function start3D(sceneRoot: HTMLElement, config: Config): Api {
     currentOrientation = orientation;
     camera.updateProjectionMatrix();
     controls.update();
-    viewStatePersistence.schedulePersist();
   }
 
-  const viewStatePersistence = createViewStatePersistence({
-    sceneAssetUrl: SCENE_ASSET_URL,
-    camera,
-    controls,
-    getOrientation: () => currentOrientation,
-    setOrientation,
-  });
-
-  if (!viewStatePersistence.restore()) {
-    setOrientation(config.orientation);
-  }
-
-  controls.addEventListener('change', viewStatePersistence.schedulePersist);
+  setOrientation(config.orientation);
 
   // Set up piece hover and interaction
   const hoverController = createPieceHoverController(scene, camera, renderer.domElement);
@@ -255,9 +241,6 @@ export function start3D(sceneRoot: HTMLElement, config: Config): Api {
     },
 
     destroy() {
-      controls.removeEventListener('change', viewStatePersistence.schedulePersist);
-      viewStatePersistence.persist();
-
       console.warn(
         'Destroying the 3D scene is not fully implemented. You may want to remove the canvas from the DOM instead.',
       );
