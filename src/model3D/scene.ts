@@ -10,6 +10,8 @@ import { createPieceHoverController } from './hover.js';
 import { setupPieceInteraction } from './interaction.js';
 import { createViewStatePersistence } from './viewState.js';
 
+const SCENE_ASSET_URL = new URL('../../scene.glb', import.meta.url).href;
+
 export function start3D(sceneRoot: HTMLElement, config: Config): Api {
   // Scene setup
   const scene = new THREE.Scene();
@@ -20,7 +22,7 @@ export function start3D(sceneRoot: HTMLElement, config: Config): Api {
   const materials = new Map();
   const pieces = new Map();
 
-  const sceneAssetUrl = (config as Config & { model3D: { sceneAssetUrl: string } }).model3D.sceneAssetUrl;
+  const sceneAssetUrl = SCENE_ASSET_URL;
   const defaultFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
   let currentOrientation: 'white' | 'black' | undefined;
   let isViewOnly = !!config.viewOnly;

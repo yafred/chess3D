@@ -7,8 +7,6 @@ import { type Ctrl } from './ctrl';
 import { type BoardCtrl } from './game';
 import { type Stream } from './ndJsonStream';
 
-const SCENE_ASSET_URL = new URL('../scene.glb', import.meta.url).href;
-
 interface TvGame {
   id: string;
   orientation: Color;
@@ -80,9 +78,6 @@ export default class TvCtrl implements BoardCtrl {
     const lm = this.game.lastMove;
     const lastMove = (lm ? (lm[1] === '@' ? [lm.slice(2)] : [lm[0] + lm[1], lm[2] + lm[3]]) : []) as Key[];
     return {
-      model3D: {
-        sceneAssetUrl: SCENE_ASSET_URL,
-      },
       orientation: this.game.orientation,
       fen: this.game.fen,
       lastMove,

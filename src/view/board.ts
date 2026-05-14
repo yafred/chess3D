@@ -1,10 +1,8 @@
-import { Chessground } from '@lichess-org/chessground';
-import { type Config as CgConfig } from '@lichess-org/chessground/config';
 import { type Color } from 'chessops';
 import { h, type VNode } from 'snabbdom';
 
 import { type BoardCtrl } from '../game';
-import { start3D } from '../model3D/scene';
+import { Chessground } from '../ground';
 
 export const renderBoard = (ctrl: BoardCtrl) =>
   h(
@@ -12,16 +10,7 @@ export const renderBoard = (ctrl: BoardCtrl) =>
     h('div.cg-wrap', {
       hook: {
         insert(vnode) {
-          const element = vnode.elm as HTMLElement;
-          const config = ctrl.chessgroundConfig();
-          const model3DConfig = (config as CgConfig & { model3D?: { sceneAssetUrl?: string } }).model3D;
-
-          if (model3DConfig?.sceneAssetUrl) {
-            ctrl.setGround(start3D(element, config as CgConfig));
-            return;
-          }
-
-          ctrl.setGround(Chessground(element, config));
+          ctrl.setGround(Chessground(vnode.elm as HTMLElement, ctrl.chessgroundConfig()));
         },
       },
     }),

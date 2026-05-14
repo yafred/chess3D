@@ -10,8 +10,6 @@ import { type Ctrl } from './ctrl';
 import { type Game } from './interfaces';
 import { type Stream } from './ndJsonStream';
 
-const SCENE_ASSET_URL = new URL('../scene.glb', import.meta.url).href;
-
 export interface BoardCtrl {
   chess: Chess;
   ground?: CgApi;

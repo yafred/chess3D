@@ -10,8 +10,6 @@ import { makeUci, parseSquare, parseUci } from 'chessops/util';
 import { type Ctrl } from './ctrl';
 import { type BoardCtrl } from './game';
 
-const SCENE_ASSET_URL = new URL('../scene.glb', import.meta.url).href;
-
 interface Puzzle {
   id: string;
   solution: string[];
@@ -49,9 +47,6 @@ export class PuzzleCtrl implements BoardCtrl {
   };
 
   chessgroundConfig = () => ({
-    model3D: {
-      sceneAssetUrl: SCENE_ASSET_URL,
-    },
     orientation: this.puzzle ? this.puzzle.pov : 'white',
     fen: makeFen(this.chess.toSetup()),
     lastMove: this.lastMove,
