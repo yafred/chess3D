@@ -2,7 +2,7 @@ import { type Color } from 'chessops';
 import { h, type VNode } from 'snabbdom';
 
 import { type BoardCtrl } from '../game';
-import { Chessground } from '../ground';
+import { Chessground } from '../chessground3D/chessground';
 
 export const renderBoard = (ctrl: BoardCtrl) =>
   h(

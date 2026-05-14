@@ -1,7 +1,7 @@
 import { type Api } from '@lichess-org/chessground/api';
 import { type Config } from '@lichess-org/chessground/config';
 
-import { createChessScene } from './model3D/scene';
+import { createChessScene } from './chessScene';
 
 export function Chessground(element: HTMLElement, config?: Config): Api {
   const scene = createChessScene(element, config || {});
