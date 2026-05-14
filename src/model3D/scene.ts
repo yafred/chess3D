@@ -1,4 +1,3 @@
-import { type Api } from '@lichess-org/chessground/api';
 import { type Config } from '@lichess-org/chessground/config';
 import { type Key } from '@lichess-org/chessground/types';
 import * as THREE from 'three';
@@ -17,7 +16,12 @@ import { handleResize } from './systems/resize.js';
 
 const SCENE_ASSET_URL = new URL('./public/scene.glb', import.meta.url).href;
 
-export function start3D(sceneRoot: HTMLElement, config: Config): Api {
+export interface ChessScene {
+  set(config: Partial<Config>): void;
+  destroy(): void;
+}
+
+export function createChessScene(sceneRoot: HTMLElement, config: Config): ChessScene {
   const scene = createScene();
   const camera = createCamera(sceneRoot);
   const renderer = createRenderer(sceneRoot);
@@ -134,8 +138,6 @@ export function start3D(sceneRoot: HTMLElement, config: Config): Api {
 
   // API implementation
   return {
-    state: {} as any, // No internal state needed for now
-
     set(config) {
       if ('lastMove' in config) {
         interactionController.setLastMoveSquares(config.lastMove);
@@ -157,96 +159,13 @@ export function start3D(sceneRoot: HTMLElement, config: Config): Api {
         setOrientation(config.orientation);
       }
 
-      setAllowInteractionForColors(config);
-    },
-
-    getFen() {
-      console.warn('Getting FEN from the 3D scene is not implemented.');
-      return '';
-    },
-
-    toggleOrientation() {
-      console.warn('Toggling orientation is not implemented in this 3D scene.');
-    },
-
-    move(_orig, _dest) {
-      console.warn(
-        'Moving pieces programmatically is not implemented in this 3D scene. Please update the FEN instead.',
-      );
-    },
-
-    setPieces(_piecesDiff) {
-      console.warn(
-        'Setting pieces programmatically is not implemented in this 3D scene. Please update the FEN instead.',
-      );
-    },
-
-    selectSquare(_key, _force) {
-      console.warn('Selecting squares programmatically is not implemented in this 3D scene.');
-    },
-
-    newPiece(_piece, _key) {
-      console.warn(
-        'Adding new pieces programmatically is not implemented in this 3D scene. Please update the FEN instead.',
-      );
-    },
-
-    playPremove() {
-      console.warn('Premoves are not supported in this 3D scene implementation.');
-      return false;
-    },
-
-    cancelPremove() {
-      console.warn('Premoves are not supported in this 3D scene implementation.');
-    },
-
-    playPredrop(_validate) {
-      console.warn('Predrops are not supported in this 3D scene implementation.');
-      return false;
-    },
-
-    cancelPredrop() {
-      console.warn('Predrops are not supported in this 3D scene implementation.');
-    },
-
-    cancelMove() {
-      console.warn('Cancelling moves is not supported in this 3D scene implementation.');
-    },
-
-    stop() {
-      console.warn(
-        'Stopping the 3D scene is not implemented. You may want to remove the canvas from the DOM instead.',
-      );
-    },
-
-    explode(_keys) {
-      console.warn('Exploding squares is not implemented in this 3D scene.');
-    },
-
-    setShapes(_shapes) {
-      console.warn('Drawing shapes is not implemented in this 3D scene.');
-    },
-
-    setAutoShapes(_shapes) {
-      console.warn('Auto-shapes are not implemented in this 3D scene.');
-    },
-
-    getKeyAtDomPos(_pos) {
-      console.warn('Getting key at DOM position is not implemented in this 3D scene.');
-      return undefined;
-    },
-
-    dragNewPiece(_piece, _event, _force) {
-      console.warn('Dragging new pieces is not implemented in this 3D scene.');
+      setAllowInteractionForColors(config as Config);
     },
 
     destroy() {
-      console.warn(
-        'Destroying the 3D scene is not fully implemented. You may want to remove the canvas from the DOM instead.',
-      );
-    },
-    redrawAll() {
-      // No internal state to redraw, but we can trigger a render if needed
+      renderer.dispose();
+      controls.dispose();
+      sceneRoot.removeEventListener('pointermove', hoverController.updateFromPointerEvent);
     },
   };
 }

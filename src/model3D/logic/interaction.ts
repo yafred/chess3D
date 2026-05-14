@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { type OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-import { type PieceHoverController } from './logic/hover';
+import { type PieceHoverController } from './hover';
 
 const pieceCodes = new Set(['K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 'r', 'b', 'n', 'p']);
 
