@@ -2,12 +2,12 @@ import { type Api } from '@lichess-org/chessground/api';
 import { type Config } from '@lichess-org/chessground/config';
 import { type Key } from '@lichess-org/chessground/types';
 import * as THREE from 'three';
-import { type GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import { fenToScene } from './fen.js';
 import { createPieceHoverController } from './hover.js';
 import { setupPieceInteraction } from './interaction.js';
 import { createA1Marker } from './objects/createA1Marker.js';
+import { createPieceTemplates } from './objects/createPieceTemplates.js';
 import { createCamera } from './scene/createCamera.js';
 import { createLights } from './scene/createLights.js';
 import { createRenderer } from './scene/createRenderer.js';
@@ -29,11 +29,9 @@ export function start3D(sceneRoot: HTMLElement, config: Config): Api {
   scene.add(a1Marker);
   handleResize(sceneRoot, camera, renderer);
 
-  const loader = new GLTFLoader();
-  const materials = new Map();
-  const pieces = new Map();
+  let materials = new Map<string, THREE.Material>();
+  let pieces = new Map<string, THREE.Mesh>();
 
-  const sceneAssetUrl = SCENE_ASSET_URL;
   const defaultFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
   let currentOrientation: 'white' | 'black' | undefined;
   let isViewOnly = !!config.viewOnly;
@@ -65,7 +63,7 @@ export function start3D(sceneRoot: HTMLElement, config: Config): Api {
   }
 
   const viewStatePersistence = createViewStatePersistence({
-    sceneAssetUrl,
+    sceneAssetUrl: SCENE_ASSET_URL,
     camera,
     controls,
     getOrientation: () => currentOrientation,
@@ -127,31 +125,17 @@ export function start3D(sceneRoot: HTMLElement, config: Config): Api {
   setAllowInteractionForColors(config);
 
   // Load the scene and pieces
-  loader.load(sceneAssetUrl, (gltf: GLTF) => {
-    scene.add(gltf.scene);
-    gltf.scene.scale.set(1, 1, 1);
-    scene.traverse(obj => {
-      if (
-        obj instanceof THREE.Mesh &&
-        ['King', 'Queen', 'Rook', 'Bishop', 'Knight', 'Pawn'].includes(obj.name)
-      ) {
-        obj.visible = false;
-        pieces.set(obj.name, obj);
-        if (
-          obj.material &&
-          !Array.isArray(obj.material) &&
-          ['white piece', 'black piece'].includes(obj.material.name)
-        ) {
-          materials.set(obj.material.name, obj.material);
-        }
-      }
-    });
+  void createPieceTemplates(scene, SCENE_ASSET_URL).then(
+    ({ pieces: loadedPieces, materials: loadedMaterials }) => {
+      pieces = loadedPieces;
+      materials = loadedMaterials;
 
-    fenToScene(config?.fen || defaultFen, scene, pieces, materials);
-    interactionController.setLastMoveSquares(config?.lastMove);
+      fenToScene(config?.fen || defaultFen, scene, pieces, materials);
+      interactionController.setLastMoveSquares(config?.lastMove);
 
-    scene.visible = true;
-  });
+      scene.visible = true;
+    },
+  );
 
   // Main loop
   function animate() {
