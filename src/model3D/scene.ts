@@ -10,6 +10,7 @@ import { createLights } from './scene/createLights.js';
 import { createRenderer } from './scene/createRenderer.js';
 import { createScene } from './scene/createScene.js';
 import { createControls } from './systems/controls.js';
+import { registerSceneRenderStep } from './systems/renderScheduler.js';
 import { handleResize } from './systems/resize.js';
 
 const SCENE_ASSET_URL = new URL('./public/scene.glb', import.meta.url).href;
@@ -50,6 +51,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
 
   let materials = new Map<string, THREE.Material>();
   let pieces = new Map<string, THREE.Mesh>();
+  let isDestroyed = false;
 
   const defaultFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
   let currentOrientation: ChessColor | undefined;
@@ -143,14 +145,12 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
     },
   );
 
-  // Main loop
-  function animate() {
+  const renderStep = () => {
     hoverController.update();
-    requestAnimationFrame(animate);
     controls.update();
     renderer.render(scene, camera);
-  }
-  animate();
+  };
+  const unregisterRenderStep = registerSceneRenderStep(renderStep);
 
   // API implementation
   return {
@@ -179,6 +179,12 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
     },
 
     destroy() {
+      if (isDestroyed) {
+        return;
+      }
+      isDestroyed = true;
+
+      unregisterRenderStep();
       renderer.dispose();
       controls.dispose();
       sceneRoot.removeEventListener('pointermove', hoverController.updateFromPointerEvent);
