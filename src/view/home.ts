@@ -1,7 +1,7 @@
 import { h } from 'snabbdom';
 
-import { type Ctrl } from '../ctrl';
 import { Chessground } from '../chessground3D/chessground';
+import { type Ctrl } from '../ctrl';
 import { type Game, type Renderer } from '../interfaces';
 import type OngoingGames from '../ongoingGames';
 import { href } from '../routing';
