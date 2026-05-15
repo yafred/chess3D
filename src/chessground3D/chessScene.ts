@@ -26,9 +26,14 @@ export interface ChessSceneConfig {
   lastMove?: readonly ChessKey[];
   turnColor?: ChessColor;
   check?: ChessColor | boolean;
+  highlight?: {
+    lastMove?: boolean;
+    check?: boolean;
+  };
   movable?: {
     color?: ChessColor | 'both';
     dests?: Map<ChessKey, readonly ChessKey[]>;
+    showDests?: boolean;
   };
   events?: {
     move?: (...args: any[]) => void;
@@ -63,6 +68,8 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
   let currentOrientation: ChessColor | undefined;
   let currentTurnColor: ChessColor | undefined = config.turnColor;
   let currentCheck: ChessColor | boolean | undefined = config.check;
+  let highlightCheck = config.highlight?.check ?? true;
+  let highlightLastMove = config.highlight?.lastMove ?? true;
   let isViewOnly = !!config.viewOnly;
 
   const whiteAzimuthAngle = controls.getAzimuthalAngle();
@@ -106,7 +113,8 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
   });
 
   let allowedMoveDests = config.movable?.dests;
-  interactionController.setAllowedMoveDests(allowedMoveDests);
+  let showDests = config.movable?.showDests ?? true;
+  interactionController.setAllowedMoveDests(allowedMoveDests, showDests);
 
   if (config?.events?.move) {
     interactionController.setMoveAttemptCallback(uci => {
@@ -148,8 +156,8 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
       materials = loadedMaterials;
 
       fenToScene(config?.fen || defaultFen, scene, pieces, materials);
-      interactionController.setLastMoveSquares(config?.lastMove);
-      updateCheckHighlight(scene, checkHighlight, currentCheck, currentTurnColor);
+      interactionController.setLastMoveSquares(highlightLastMove ? config?.lastMove : undefined);
+      updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
 
       scene.visible = true;
     },
@@ -166,27 +174,34 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
   return {
     set(config) {
       if ('lastMove' in config) {
-        interactionController.setLastMoveSquares(config.lastMove);
+        interactionController.setLastMoveSquares(highlightLastMove ? config.lastMove : undefined);
       }
 
       if (config.fen) {
         fenToScene(config.fen, scene, pieces, materials);
-        updateCheckHighlight(scene, checkHighlight, currentCheck, currentTurnColor);
+        updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
+      }
+
+      if ('highlight' in config) {
+        highlightLastMove = config.highlight?.lastMove ?? true;
+        highlightCheck = config.highlight?.check ?? true;
+        updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
       }
 
       if ('turnColor' in config) {
         currentTurnColor = config.turnColor;
-        updateCheckHighlight(scene, checkHighlight, currentCheck, currentTurnColor);
+        updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
       }
 
       if ('check' in config) {
         currentCheck = config.check;
-        updateCheckHighlight(scene, checkHighlight, currentCheck, currentTurnColor);
+        updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
       }
 
       if ('movable' in config) {
         allowedMoveDests = config.movable?.dests;
-        interactionController.setAllowedMoveDests(allowedMoveDests);
+        showDests = config.movable?.showDests ?? true;
+        interactionController.setAllowedMoveDests(allowedMoveDests, showDests);
       }
 
       if ('viewOnly' in config) {

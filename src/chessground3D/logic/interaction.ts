@@ -32,7 +32,7 @@ export type PieceInteractionController = {
   moveProgrammatically: (fromX: number, fromZ: number, toX: number, toZ: number) => boolean;
   moveProgrammaticallyBySquare: (from: string, to: string) => boolean;
   setLastMoveSquares: (squares?: readonly string[]) => void;
-  setAllowedMoveDests: (dests?: Map<string, readonly string[]>) => void;
+  setAllowedMoveDests: (dests?: Map<string, readonly string[]>, showDests?: boolean) => void;
   setMoveAttemptCallback: (callback: (uci: string) => boolean) => void; // Set callback for validating user moves
   setAllowWhiteInteraction: (allow: boolean) => void;
   setAllowBlackInteraction: (allow: boolean) => void;
@@ -95,6 +95,7 @@ export function setupPieceInteraction({
   let allowBlackInteraction = initialAllowBlackInteraction;
   let interactionEnabled = true;
   let allowedMoveDests: Map<string, readonly string[]> | undefined;
+  let showDests = true;
 
   function getPieceMeshFromObject(object: THREE.Object3D | null): THREE.Mesh | null {
     let current: THREE.Object3D | null = object;
@@ -181,7 +182,7 @@ export function setupPieceInteraction({
   }
 
   function showSelectableMoveHighlights(piece: THREE.Mesh) {
-    updateMoveDestinationHighlights(scene, selectableMoveHighlights, piece, allowedMoveDests);
+    updateMoveDestinationHighlights(scene, selectableMoveHighlights, piece, showDests ? allowedMoveDests : undefined);
   }
 
   function setLastMoveHighlights(fromX: number, fromZ: number, toX: number, toZ: number) {
@@ -298,8 +299,9 @@ export function setupPieceInteraction({
     onMoveAttempt = callback;
   }
 
-  function setAllowedMoveDests(dests?: Map<string, readonly string[]>) {
+  function setAllowedMoveDests(dests?: Map<string, readonly string[]>, nextShowDests = true) {
     allowedMoveDests = dests;
+    showDests = nextShowDests;
     if (selectedPiece) {
       showSelectableMoveHighlights(selectedPiece);
     } else {
