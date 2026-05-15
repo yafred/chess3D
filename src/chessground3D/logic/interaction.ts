@@ -31,6 +31,7 @@ export type PieceInteractionController = {
   moveProgrammatically: (fromX: number, fromZ: number, toX: number, toZ: number) => boolean;
   moveProgrammaticallyBySquare: (from: string, to: string) => boolean;
   setLastMoveSquares: (squares?: readonly string[]) => void;
+  setAllowedMoveDests: (dests?: Map<string, readonly string[]>) => void;
   setMoveAttemptCallback: (callback: (uci: string) => boolean) => void; // Set callback for validating user moves
   setAllowWhiteInteraction: (allow: boolean) => void;
   setAllowBlackInteraction: (allow: boolean) => void;
@@ -71,6 +72,7 @@ export function setupPieceInteraction({
       side: THREE.DoubleSide,
     }),
   );
+  const selectableMoveHighlights = new THREE.Group();
   lastMoveFromHighlight.rotation.x = -Math.PI / 2;
   lastMoveToHighlight.rotation.x = -Math.PI / 2;
   lastMoveFromHighlight.position.y = 0.005;
@@ -81,6 +83,7 @@ export function setupPieceInteraction({
   lastMoveToHighlight.renderOrder = 9;
   scene.add(lastMoveFromHighlight);
   scene.add(lastMoveToHighlight);
+  scene.add(selectableMoveHighlights);
 
   let dragState: DragState | null = null;
   let selectedPiece: THREE.Mesh | null = null;
@@ -90,6 +93,7 @@ export function setupPieceInteraction({
   let allowWhiteInteraction = initialAllowWhiteInteraction;
   let allowBlackInteraction = initialAllowBlackInteraction;
   let interactionEnabled = true;
+  let allowedMoveDests: Map<string, readonly string[]> | undefined;
 
   function getPieceMeshFromObject(object: THREE.Object3D | null): THREE.Mesh | null {
     let current: THREE.Object3D | null = object;
@@ -171,6 +175,51 @@ export function setupPieceInteraction({
     return coordToSquare(fromX, fromZ) + coordToSquare(toX, toZ);
   }
 
+  function coordinatesToSquare(x: number, z: number): string {
+    const fileIndex = Math.round(x + 3.5);
+    const rank = Math.round(4.5 - z);
+    return String.fromCharCode('a'.charCodeAt(0) + fileIndex) + rank;
+  }
+
+  function clearSelectableMoveHighlights() {
+    selectableMoveHighlights.clear();
+  }
+
+  function showSelectableMoveHighlights(piece: THREE.Mesh) {
+    clearSelectableMoveHighlights();
+
+    const fromSquare = coordinatesToSquare(getSquareCoordinate(piece.position.x), getSquareCoordinate(piece.position.z));
+    const destinationSquares = allowedMoveDests?.get(fromSquare);
+    if (!destinationSquares?.length) {
+      return;
+    }
+
+    for (const square of destinationSquares) {
+      const coordinates = parseSquare(square);
+      if (!coordinates) {
+        continue;
+      }
+
+      const occupyingPiece = getPieceAtSquare(coordinates.x, coordinates.z, piece);
+      const highlightRadius = occupyingPiece ? 0.5 : 0.2;
+
+      const highlight = new THREE.Mesh(
+        new THREE.CircleGeometry(highlightRadius, 32),
+        new THREE.MeshBasicMaterial({
+          color: 0x2f_6f_ff,
+          transparent: true,
+          opacity: 0.45,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        }),
+      );
+      highlight.rotation.x = -Math.PI / 2;
+      highlight.position.set(coordinates.x, 0.012, coordinates.z);
+      highlight.renderOrder = 11;
+      selectableMoveHighlights.add(highlight);
+    }
+  }
+
   function setLastMoveHighlights(fromX: number, fromZ: number, toX: number, toZ: number) {
     lastMoveFromHighlight.position.x = fromX;
     lastMoveFromHighlight.position.z = fromZ;
@@ -231,6 +280,7 @@ export function setupPieceInteraction({
   function clearSelection() {
     selectedPiece = null;
     hoverController.setPinnedPiece(null);
+    clearSelectableMoveHighlights();
   }
 
   function selectPiece(piece: THREE.Mesh) {
@@ -240,6 +290,7 @@ export function setupPieceInteraction({
 
     selectedPiece = piece;
     hoverController.setPinnedPiece(piece);
+    showSelectableMoveHighlights(piece);
   }
 
   function applyMoveOrCapture(
@@ -281,6 +332,15 @@ export function setupPieceInteraction({
 
   function setMoveAttemptCallback(callback: (uci: string) => boolean) {
     onMoveAttempt = callback;
+  }
+
+  function setAllowedMoveDests(dests?: Map<string, readonly string[]>) {
+    allowedMoveDests = dests;
+    if (selectedPiece) {
+      showSelectableMoveHighlights(selectedPiece);
+    } else {
+      clearSelectableMoveHighlights();
+    }
   }
 
   function setInteractionEnabled(enabled: boolean) {
@@ -645,6 +705,7 @@ export function setupPieceInteraction({
     moveProgrammatically,
     moveProgrammaticallyBySquare,
     setLastMoveSquares,
+    setAllowedMoveDests,
     setMoveAttemptCallback,
     setAllowWhiteInteraction,
     setAllowBlackInteraction,

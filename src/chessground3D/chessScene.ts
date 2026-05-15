@@ -100,6 +100,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
   });
 
   let allowedMoveDests = config.movable?.dests;
+  interactionController.setAllowedMoveDests(allowedMoveDests);
 
   if (config?.events?.move) {
     interactionController.setMoveAttemptCallback(uci => {
@@ -167,6 +168,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
 
       if ('movable' in config) {
         allowedMoveDests = config.movable?.dests;
+        interactionController.setAllowedMoveDests(allowedMoveDests);
       }
 
       if ('viewOnly' in config) {
