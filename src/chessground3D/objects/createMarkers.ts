@@ -22,3 +22,21 @@ export function createA1Marker() {
 export function createH8Marker() {
   return createCornerMarker('#525252', 3.87, -3.87);
 }
+
+export function createCheckHighlightMarker() {
+  const marker = new THREE.Mesh(
+    new THREE.CircleGeometry(0.5, 32),
+    new THREE.MeshBasicMaterial({
+      color: '#ff5c5c',
+      transparent: true,
+      opacity: 0.45,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+  );
+  marker.rotation.x = -Math.PI / 2;
+  marker.position.y = 0.012;
+  marker.visible = false;
+  marker.renderOrder = 11;
+  return marker;
+}

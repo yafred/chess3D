@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 
 import { fenToScene } from './logic/fen.js';
+import { updateCheckHighlight } from './logic/checkHighlight.js';
 import { createPieceHoverController } from './logic/hover.js';
 import { setupPieceInteraction } from './logic/interaction.js';
-import { createA1Marker, createH8Marker } from './objects/createMarkers.js';
+import { createA1Marker, createCheckHighlightMarker, createH8Marker } from './objects/createMarkers.js';
 import { createPieceTemplates } from './objects/createPieceTemplates.js';
 import { createCamera } from './scene/createCamera.js';
 import { createLights } from './scene/createLights.js';
@@ -24,6 +25,7 @@ export interface ChessSceneConfig {
   fen?: string;
   lastMove?: readonly ChessKey[];
   turnColor?: ChessColor;
+  check?: ChessColor | boolean;
   movable?: {
     color?: ChessColor | 'both';
     dests?: Map<ChessKey, readonly ChessKey[]>;
@@ -47,8 +49,10 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
   scene.add(lights);
   const a1Marker = createA1Marker();
   const h8Marker = createH8Marker();
+  const checkHighlight = createCheckHighlightMarker();
   scene.add(a1Marker);
   scene.add(h8Marker);
+  scene.add(checkHighlight);
   handleResize(sceneRoot, camera, renderer);
 
   let materials = new Map<string, THREE.Material>();
@@ -57,6 +61,8 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
 
   const defaultFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
   let currentOrientation: ChessColor | undefined;
+  let currentTurnColor: ChessColor | undefined = config.turnColor;
+  let currentCheck: ChessColor | boolean | undefined = config.check;
   let isViewOnly = !!config.viewOnly;
 
   const whiteAzimuthAngle = controls.getAzimuthalAngle();
@@ -143,6 +149,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
 
       fenToScene(config?.fen || defaultFen, scene, pieces, materials);
       interactionController.setLastMoveSquares(config?.lastMove);
+      updateCheckHighlight(scene, checkHighlight, currentCheck, currentTurnColor);
 
       scene.visible = true;
     },
@@ -164,6 +171,17 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
 
       if (config.fen) {
         fenToScene(config.fen, scene, pieces, materials);
+        updateCheckHighlight(scene, checkHighlight, currentCheck, currentTurnColor);
+      }
+
+      if ('turnColor' in config) {
+        currentTurnColor = config.turnColor;
+        updateCheckHighlight(scene, checkHighlight, currentCheck, currentTurnColor);
+      }
+
+      if ('check' in config) {
+        currentCheck = config.check;
+        updateCheckHighlight(scene, checkHighlight, currentCheck, currentTurnColor);
       }
 
       if ('movable' in config) {
