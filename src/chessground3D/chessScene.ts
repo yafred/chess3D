@@ -1,20 +1,23 @@
-import * as THREE from 'three';
+import type * as THREE from 'three';
 
 import { updateCheckHighlight } from './logic/checkHighlight.js';
 import { fenToScene } from './logic/fen.js';
 import { createPieceHoverController } from './logic/hover.js';
 import { setupPieceInteraction } from './logic/interaction.js';
+import { applyInteractionPolicy } from './logic/interactionPolicy.js';
+import { setupMoveAttemptAdapter } from './logic/moveAttemptAdapter.js';
 import { createA1Marker, createCheckHighlightMarker, createH8Marker } from './objects/createMarkers.js';
 import { createPieceTemplates } from './objects/createPieceTemplates.js';
 import { createCamera } from './scene/createCamera.js';
 import { createLights } from './scene/createLights.js';
 import { createRenderer } from './scene/createRenderer.js';
 import { createScene } from './scene/createScene.js';
-import { createControls } from './systems/controls.js';
+import { createControls, getWhiteAzimuthAngle, setControlsOrientation } from './systems/controls.js';
 import { registerSceneRenderStep } from './systems/renderScheduler.js';
 import { handleResize } from './systems/resize.js';
 
 const SCENE_ASSET_URL = new URL('./public/scene.glb', import.meta.url).href;
+const DEFAULT_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 
 type ChessColor = 'white' | 'black';
 type ChessKey = string;
@@ -63,8 +66,6 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
   let materials = new Map<string, THREE.Material>();
   let pieces = new Map<string, THREE.Mesh>();
   let isDestroyed = false;
-
-  const defaultFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
   let currentOrientation: ChessColor | undefined;
   let currentTurnColor: ChessColor | undefined = config.turnColor;
   let currentCheck: ChessColor | boolean | undefined = config.check;
@@ -72,29 +73,14 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
   let highlightLastMove = config.highlight?.lastMove ?? true;
   let isViewOnly = !!config.viewOnly;
 
-  const whiteAzimuthAngle = controls.getAzimuthalAngle();
-  const setLockedAzimuth = (azimuth: number) => {
-    controls.minAzimuthAngle = azimuth;
-    controls.maxAzimuthAngle = azimuth;
-  };
+  const whiteAzimuthAngle = getWhiteAzimuthAngle(controls);
   function setOrientation(orientation: ChessColor | undefined) {
     if (!orientation || orientation === currentOrientation) {
       return;
     }
-    const azimuth = orientation === 'white' ? whiteAzimuthAngle : whiteAzimuthAngle + Math.PI;
-    const normalizedAzimuth = THREE.MathUtils.euclideanModulo(azimuth + Math.PI, Math.PI * 2) - Math.PI;
-
-    setLockedAzimuth(normalizedAzimuth);
-
-    const offset = camera.position.clone().sub(controls.target);
-    const spherical = new THREE.Spherical().setFromVector3(offset);
-    spherical.theta = normalizedAzimuth;
-    offset.setFromSpherical(spherical);
-    camera.position.copy(controls.target).add(offset);
+    setControlsOrientation(camera, controls, orientation, whiteAzimuthAngle);
 
     currentOrientation = orientation;
-    camera.updateProjectionMatrix();
-    controls.update();
   }
 
   setOrientation(config.orientation);
@@ -116,35 +102,14 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
   let showDests = config.movable?.showDests ?? true;
   interactionController.setAllowedMoveDests(allowedMoveDests, showDests);
 
-  if (config?.events?.move) {
-    interactionController.setMoveAttemptCallback(uci => {
-      const from = uci.slice(0, 2) as ChessKey;
-      const to = uci.slice(2, 4) as ChessKey;
-      if (allowedMoveDests && !allowedMoveDests.get(from)?.includes(to)) {
-        return false;
-      }
-      config.events?.move?.(from, to);
-      return true;
-    });
-  }
+  setupMoveAttemptAdapter(interactionController, () => allowedMoveDests, config.events?.move);
 
   function setAllowInteractionForColors(config: Partial<ChessSceneConfig>) {
-    interactionController.setInteractionEnabled(!isViewOnly);
-    if (isViewOnly) {
-      interactionController.setAllowWhiteInteraction(false);
-      interactionController.setAllowBlackInteraction(false);
-      return;
-    }
-
-    if (config?.turnColor) {
-      const isWhiteTurn = config.turnColor === 'white';
-      const isMyTurn =
-        (isWhiteTurn && config.movable?.color === 'white') ||
-        (!isWhiteTurn && config.movable?.color === 'black') ||
-        config.movable?.color === 'both';
-      interactionController.setAllowWhiteInteraction(isWhiteTurn && isMyTurn);
-      interactionController.setAllowBlackInteraction(!isWhiteTurn && isMyTurn);
-    }
+    applyInteractionPolicy(interactionController, {
+      isViewOnly,
+      turnColor: config.turnColor,
+      movableColor: config.movable?.color,
+    });
   }
 
   setAllowInteractionForColors(config);
@@ -155,7 +120,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
       pieces = loadedPieces;
       materials = loadedMaterials;
 
-      fenToScene(config?.fen || defaultFen, scene, pieces, materials);
+      fenToScene(config?.fen || DEFAULT_FEN, scene, pieces, materials);
       interactionController.setLastMoveSquares(highlightLastMove ? config?.lastMove : undefined);
       updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
 
