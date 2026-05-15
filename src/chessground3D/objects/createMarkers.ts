@@ -40,3 +40,21 @@ export function createCheckHighlightMarker() {
   marker.renderOrder = 11;
   return marker;
 }
+
+export function createMoveDestinationHighlightMarker(isOccupied: boolean) {
+  const marker = new THREE.Mesh(
+    new THREE.CircleGeometry(isOccupied ? 0.5 : 0.2, 32),
+    new THREE.MeshBasicMaterial({
+      color: '#2f6fff',
+      transparent: true,
+      opacity: 0.45,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+  );
+  marker.rotation.x = -Math.PI / 2;
+  marker.position.y = 0.012;
+  marker.visible = true;
+  marker.renderOrder = 11;
+  return marker;
+}

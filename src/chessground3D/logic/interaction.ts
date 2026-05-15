@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { type OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
+import { clearMoveDestinationHighlights, updateMoveDestinationHighlights } from './moveDestinationHighlight';
 import { type PieceHoverController } from './hover';
 
 const pieceCodes = new Set(['K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 'r', 'b', 'n', 'p']);
@@ -175,49 +176,12 @@ export function setupPieceInteraction({
     return coordToSquare(fromX, fromZ) + coordToSquare(toX, toZ);
   }
 
-  function coordinatesToSquare(x: number, z: number): string {
-    const fileIndex = Math.round(x + 3.5);
-    const rank = Math.round(4.5 - z);
-    return String.fromCharCode('a'.charCodeAt(0) + fileIndex) + rank;
-  }
-
   function clearSelectableMoveHighlights() {
-    selectableMoveHighlights.clear();
+    clearMoveDestinationHighlights(selectableMoveHighlights);
   }
 
   function showSelectableMoveHighlights(piece: THREE.Mesh) {
-    clearSelectableMoveHighlights();
-
-    const fromSquare = coordinatesToSquare(getSquareCoordinate(piece.position.x), getSquareCoordinate(piece.position.z));
-    const destinationSquares = allowedMoveDests?.get(fromSquare);
-    if (!destinationSquares?.length) {
-      return;
-    }
-
-    for (const square of destinationSquares) {
-      const coordinates = parseSquare(square);
-      if (!coordinates) {
-        continue;
-      }
-
-      const occupyingPiece = getPieceAtSquare(coordinates.x, coordinates.z, piece);
-      const highlightRadius = occupyingPiece ? 0.5 : 0.2;
-
-      const highlight = new THREE.Mesh(
-        new THREE.CircleGeometry(highlightRadius, 32),
-        new THREE.MeshBasicMaterial({
-          color: 0x2f_6f_ff,
-          transparent: true,
-          opacity: 0.45,
-          depthWrite: false,
-          side: THREE.DoubleSide,
-        }),
-      );
-      highlight.rotation.x = -Math.PI / 2;
-      highlight.position.set(coordinates.x, 0.012, coordinates.z);
-      highlight.renderOrder = 11;
-      selectableMoveHighlights.add(highlight);
-    }
+    updateMoveDestinationHighlights(scene, selectableMoveHighlights, piece, allowedMoveDests);
   }
 
   function setLastMoveHighlights(fromX: number, fromZ: number, toX: number, toZ: number) {
