@@ -60,16 +60,16 @@ export function updateMoveDestinationHighlights(
   highlightGroup: THREE.Group,
   selectedPiece: THREE.Mesh | null,
   allowedMoveDests?: Map<ChessKey, readonly ChessKey[]>,
+  fromSquareOverride?: ChessKey,
 ) {
   clearMoveDestinationHighlights(highlightGroup);
   if (!selectedPiece) {
     return;
   }
 
-  const fromSquare = coordinatesToSquare(
-    getSquareCoordinate(selectedPiece.position.x),
-    getSquareCoordinate(selectedPiece.position.z),
-  );
+  const fromSquare =
+    fromSquareOverride ||
+    coordinatesToSquare(getSquareCoordinate(selectedPiece.position.x), getSquareCoordinate(selectedPiece.position.z));
   const destinationSquares = allowedMoveDests?.get(fromSquare);
   if (!destinationSquares?.length) {
     return;

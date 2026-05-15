@@ -169,24 +169,26 @@ export function setupPieceInteraction({
 
   function coordinatesToUci(fromX: number, fromZ: number, toX: number, toZ: number): string {
     // Convert board coordinates to square notation (a1-h8)
-    const coordToSquare = (x: number, z: number) => {
-      const fileIndex = Math.round(x + 3.5);
-      const rank = Math.round(4.5 - z);
-      return String.fromCharCode('a'.charCodeAt(0) + fileIndex) + rank;
-    };
-    return coordToSquare(fromX, fromZ) + coordToSquare(toX, toZ);
+    return coordinatesToSquare(fromX, fromZ) + coordinatesToSquare(toX, toZ);
+  }
+
+  function coordinatesToSquare(x: number, z: number): string {
+    const fileIndex = Math.round(x + 3.5);
+    const rank = Math.round(4.5 - z);
+    return String.fromCharCode('a'.charCodeAt(0) + fileIndex) + rank;
   }
 
   function clearSelectableMoveHighlights() {
     clearMoveDestinationHighlights(selectableMoveHighlights);
   }
 
-  function showSelectableMoveHighlights(piece: THREE.Mesh) {
+  function showSelectableMoveHighlights(piece: THREE.Mesh, fromSquareOverride?: string) {
     updateMoveDestinationHighlights(
       scene,
       selectableMoveHighlights,
       piece,
       showDests ? allowedMoveDests : undefined,
+      fromSquareOverride,
     );
   }
 
@@ -610,6 +612,9 @@ export function setupPieceInteraction({
       if (selectedPiece === dragState.piece) {
         clearSelection();
       }
+
+      const dragStartSquare = coordinatesToSquare(dragState.startPosition.x, dragState.startPosition.z);
+      showSelectableMoveHighlights(dragState.piece, dragStartSquare);
       hoverController.setDraggedPiece(dragState.piece);
     }
 
