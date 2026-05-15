@@ -16,7 +16,7 @@ function createCornerMarker(color: string, x: number, z: number) {
 }
 
 export function createA1Marker() {
-  return createCornerMarker('#c5c5c5', -3.87, 3.87);
+  return createCornerMarker('#d4d4d4', -3.87, 3.87);
 }
 
 export function createH8Marker() {
