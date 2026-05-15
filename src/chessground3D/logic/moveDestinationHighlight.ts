@@ -69,7 +69,10 @@ export function updateMoveDestinationHighlights(
 
   const fromSquare =
     fromSquareOverride ||
-    coordinatesToSquare(getSquareCoordinate(selectedPiece.position.x), getSquareCoordinate(selectedPiece.position.z));
+    coordinatesToSquare(
+      getSquareCoordinate(selectedPiece.position.x),
+      getSquareCoordinate(selectedPiece.position.z),
+    );
   const destinationSquares = allowedMoveDests?.get(fromSquare);
   if (!destinationSquares?.length) {
     return;
