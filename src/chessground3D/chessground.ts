@@ -6,9 +6,14 @@ import { createChessScene } from './chessScene';
 export function Chessground(element: HTMLElement, config?: Config): Api {
   const scene = createChessScene(element, config || {});
 
-  const notImplemented = (name: string) => () => {
-    console.warn(`${name} is not implemented in this 3D scene.`);
-  };
+  function notImplemented(name: string): () => void;
+  function notImplemented<T>(name: string, returnValue: T): () => T;
+  function notImplemented<T>(name: string, returnValue?: T) {
+    return () => {
+      console.warn(`${name} is not implemented in this 3D scene.`);
+      return returnValue;
+    };
+  }
 
   return {
     state: {} as any,
@@ -17,49 +22,24 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
       scene.set(config);
     },
 
-    getFen() {
-      console.warn('Getting FEN from the 3D scene is not implemented.');
-      return '';
-    },
-
-    toggleOrientation() {
-      console.warn('Toggling orientation is not implemented in this 3D scene.');
-    },
-
-    move: notImplemented('move') as Api['move'],
-    setPieces: notImplemented('setPieces') as Api['setPieces'],
-    selectSquare: notImplemented('selectSquare') as Api['selectSquare'],
-    newPiece: notImplemented('newPiece') as Api['newPiece'],
-    cancelMove: notImplemented('cancelMove') as Api['cancelMove'],
-    stop: notImplemented('stop') as Api['stop'],
-    explode: notImplemented('explode') as Api['explode'],
-    setShapes: notImplemented('setShapes') as Api['setShapes'],
-    setAutoShapes: notImplemented('setAutoShapes') as Api['setAutoShapes'],
-    dragNewPiece: notImplemented('dragNewPiece') as Api['dragNewPiece'],
-    redrawAll: notImplemented('redrawAll') as Api['redrawAll'],
-
-    playPremove() {
-      console.warn('Premoves are not supported in this 3D scene.');
-      return false;
-    },
-
-    cancelPremove() {
-      console.warn('Premoves are not supported in this 3D scene.');
-    },
-
-    playPredrop(_validate) {
-      console.warn('Predrops are not supported in this 3D scene.');
-      return false;
-    },
-
-    cancelPredrop() {
-      console.warn('Predrops are not supported in this 3D scene.');
-    },
-
-    getKeyAtDomPos(_pos) {
-      console.warn('Getting key at DOM position is not implemented in this 3D scene.');
-      return undefined;
-    },
+    getFen: notImplemented('getFen', ''),
+    toggleOrientation: notImplemented('toggleOrientation'),
+    move: notImplemented('move'),
+    setPieces: notImplemented('setPieces'),
+    selectSquare: notImplemented('selectSquare'),
+    newPiece: notImplemented('newPiece'),
+    cancelMove: notImplemented('cancelMove'),
+    stop: notImplemented('stop'),
+    explode: notImplemented('explode'),
+    setShapes: notImplemented('setShapes'),
+    setAutoShapes: notImplemented('setAutoShapes'),
+    dragNewPiece: notImplemented('dragNewPiece'),
+    redrawAll: notImplemented('redrawAll'),
+    playPremove: notImplemented('playPremove', false),
+    cancelPremove: notImplemented('cancelPremove'),
+    playPredrop: notImplemented('playPredrop', false),
+    cancelPredrop: notImplemented('cancelPredrop'),
+    getKeyAtDomPos: notImplemented('getKeyAtDomPos', undefined),
 
     destroy() {
       scene.destroy();
