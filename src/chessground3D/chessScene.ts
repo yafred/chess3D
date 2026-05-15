@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
-import { fenToScene } from './logic/fen.js';
 import { updateCheckHighlight } from './logic/checkHighlight.js';
+import { fenToScene } from './logic/fen.js';
 import { createPieceHoverController } from './logic/hover.js';
 import { setupPieceInteraction } from './logic/interaction.js';
 import { createA1Marker, createCheckHighlightMarker, createH8Marker } from './objects/createMarkers.js';

@@ -30,7 +30,12 @@ function parseSquare(square: string): { x: number; z: number } | null {
   };
 }
 
-function getPieceAtSquare(scene: THREE.Scene, x: number, z: number, ignorePiece?: THREE.Mesh): THREE.Mesh | null {
+function getPieceAtSquare(
+  scene: THREE.Scene,
+  x: number,
+  z: number,
+  ignorePiece?: THREE.Mesh,
+): THREE.Mesh | null {
   let pieceAtSquare: THREE.Mesh | null = null;
 
   scene.traverse(obj => {

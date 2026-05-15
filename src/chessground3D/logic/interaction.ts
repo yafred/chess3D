@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { type OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-import { clearMoveDestinationHighlights, updateMoveDestinationHighlights } from './moveDestinationHighlight';
 import { type PieceHoverController } from './hover';
+import { clearMoveDestinationHighlights, updateMoveDestinationHighlights } from './moveDestinationHighlight';
 
 const pieceCodes = new Set(['K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 'r', 'b', 'n', 'p']);
 
@@ -182,7 +182,12 @@ export function setupPieceInteraction({
   }
 
   function showSelectableMoveHighlights(piece: THREE.Mesh) {
-    updateMoveDestinationHighlights(scene, selectableMoveHighlights, piece, showDests ? allowedMoveDests : undefined);
+    updateMoveDestinationHighlights(
+      scene,
+      selectableMoveHighlights,
+      piece,
+      showDests ? allowedMoveDests : undefined,
+    );
   }
 
   function setLastMoveHighlights(fromX: number, fromZ: number, toX: number, toZ: number) {
