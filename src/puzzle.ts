@@ -57,7 +57,7 @@ export class PuzzleCtrl implements BoardCtrl {
       free: false,
       color: this.canMove ? this.chess.turn : undefined,
       dests: chessgroundDests(this.chess),
-      showDests: false,
+      showDests: true,
     },
     highlight: {
       lastMove: true,
