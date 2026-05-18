@@ -16,9 +16,11 @@ export const renderTv: (ctrl: TvCtrl) => Renderer = ctrl => _ => [
       },
     },
     [
-      renderTvPlayer(ctrl, opposite(ctrl.game.orientation)),
+      h('aside.game-page__left-float', [
+        renderTvPlayer(ctrl, opposite(ctrl.game.orientation)),
+        renderTvPlayer(ctrl, ctrl.game.orientation),
+      ]),
       renderBoard(ctrl),
-      renderTvPlayer(ctrl, ctrl.game.orientation),
     ],
   ),
 ];
