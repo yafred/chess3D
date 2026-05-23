@@ -66,7 +66,7 @@ export default class TvCtrl implements BoardCtrl {
         }
       };
       void root.auth
-        .openStream('/api/tv/feed', {}, handler)
+        .openStream('/api/tv/rapid/feed', {}, handler)
         .then(openedStream => {
           stream = openedStream;
         })
