@@ -11,8 +11,11 @@ export const renderPuzzle: (ctrl: PuzzleCtrl) => Renderer = ctrl => _ => [
   h(`div.game-page.game-page`, [h('aside.game-page__left-float', [renderButtons(ctrl)]), renderBoard(ctrl)]),
 ];
 
-const renderButtons = (ctrl: PuzzleCtrl) =>
-  h('div.d-flex.flex-column.gap-2.mt-4', [
+const renderButtons = (ctrl: PuzzleCtrl) => {
+  const loadedPuzzleId = ctrl.puzzle?.id || ctrl.puzzleId.trim();
+  const trainingUrl = loadedPuzzleId ? `https://lichess.org/training/${loadedPuzzleId}` : '';
+
+  return h('div.d-flex.flex-column.gap-2.mt-4', [
     h(
       'button.btn.btn-secondary',
       {
@@ -53,11 +56,12 @@ const renderButtons = (ctrl: PuzzleCtrl) =>
     ]),
     h('div.input-group', [
       h('input.form-control', {
+        key: `puzzle-id-${ctrl.puzzleId}`,
         attrs: {
           type: 'text',
           placeholder: 'Puzzle ID',
-          value: ctrl.puzzleId,
         },
+        props: { value: ctrl.puzzleId },
         on: {
           input(event: Event) {
             ctrl.setPuzzleId((event.target as HTMLInputElement).value);
@@ -78,6 +82,19 @@ const renderButtons = (ctrl: PuzzleCtrl) =>
           },
         },
         'load puzzle',
+      ),
+    ]),
+    h('div.small', [
+      h(
+        'a',
+        {
+          attrs: {
+            href: trainingUrl,
+            target: '_blank',
+            rel: 'noopener noreferrer',
+          },
+        },
+        trainingUrl,
       ),
     ]),
     h('div.promotion', [
@@ -107,3 +124,4 @@ const renderButtons = (ctrl: PuzzleCtrl) =>
       ),
     ]),
   ]);
+};

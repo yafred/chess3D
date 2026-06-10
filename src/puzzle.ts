@@ -183,6 +183,7 @@ export class PuzzleCtrl implements BoardCtrl {
       this.puzzle.pov = this.chess.turn;
 
       this.onUpdate();
+      this.root.redraw();
     }
   };
 
