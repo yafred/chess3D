@@ -85,17 +85,19 @@ const renderButtons = (ctrl: PuzzleCtrl) => {
       ),
     ]),
     h('div.small', [
-      h(
-        'a',
-        {
-          attrs: {
-            href: trainingUrl,
-            target: '_blank',
-            rel: 'noopener noreferrer',
-          },
-        },
-        trainingUrl,
-      ),
+      loadedPuzzleId
+        ? h(
+            'a',
+            {
+              attrs: {
+                href: trainingUrl,
+                target: '_blank',
+                rel: 'noopener noreferrer',
+              },
+            },
+            trainingUrl,
+          )
+        : h('span.text-muted', '\u00A0'),
     ]),
     h('div.promotion', [
       h('label', { attrs: { for: 'promotion-select' } }, 'Promotion'),
