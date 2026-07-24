@@ -69,6 +69,8 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
   let currentOrientation: ChessColor | undefined;
   let currentTurnColor: ChessColor | undefined = config.turnColor;
   let currentCheck: ChessColor | boolean | undefined = config.check;
+  let currentFen: string | undefined = config.fen;
+  let currentLastMove: readonly ChessKey[] | undefined = config.lastMove;
   let highlightCheck = config.highlight?.check ?? true;
   let highlightLastMove = config.highlight?.lastMove ?? true;
   let isViewOnly = !!config.viewOnly;
@@ -120,8 +122,8 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
       pieces = loadedPieces;
       materials = loadedMaterials;
 
-      fenToScene(config?.fen || DEFAULT_FEN, scene, pieces, materials);
-      interactionController.setLastMoveSquares(highlightLastMove ? config?.lastMove : undefined);
+      fenToScene(currentFen || DEFAULT_FEN, scene, pieces, materials);
+      interactionController.setLastMoveSquares(highlightLastMove ? currentLastMove : undefined);
       updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
 
       scene.visible = true;
@@ -139,11 +141,13 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
   return {
     set(config) {
       if ('lastMove' in config) {
+        currentLastMove = config.lastMove;
         interactionController.setLastMoveSquares(highlightLastMove ? config.lastMove : undefined);
       }
 
       if (config.fen) {
-        fenToScene(config.fen, scene, pieces, materials);
+        currentFen = config.fen;
+        fenToScene(currentFen, scene, pieces, materials);
         updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
       }
 

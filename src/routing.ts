@@ -24,6 +24,9 @@ export default function Routing(ctrl: Ctrl) {
     ctrl.openGame(ctx.params.id);
   });
   page('/tv', ctx => ctrl.watchTv());
+  page('/spectate/:id', ctx => {
+    ctrl.watchGame(ctx.params.id);
+  });
   page({ hashbang: true });
 }
 

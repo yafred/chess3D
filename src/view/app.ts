@@ -8,6 +8,7 @@ import { renderHome } from './home';
 import layout from './layout';
 import { renderPuzzle } from './puzzle';
 import { renderSeek } from './seek';
+import { renderSpectate } from './spectate';
 import { spinner } from './spinner';
 import { renderTv } from './tv';
 
@@ -33,6 +34,9 @@ const selectRenderer = (ctrl: Ctrl): Renderer => {
   }
   if (ctrl.page === 'tv') {
     return ctrl.tv ? renderTv(ctrl.tv) : renderLoading;
+  }
+  if (ctrl.page === 'spectate') {
+    return ctrl.spectate ? renderSpectate(ctrl.spectate) : renderLoading;
   }
   return renderNotFound;
 };

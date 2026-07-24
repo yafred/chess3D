@@ -6,6 +6,7 @@ import { type Stream } from './ndJsonStream';
 import OngoingGames from './ongoingGames';
 import { PuzzleCtrl } from './puzzle';
 import { SeekCtrl } from './seek';
+import SpectateCtrl from './spectate';
 import TvCtrl from './tv';
 import { formData } from './util';
 
@@ -18,6 +19,7 @@ export class Ctrl {
   seek?: SeekCtrl;
   challenge?: ChallengeCtrl;
   tv?: TvCtrl;
+  spectate?: SpectateCtrl;
   puzzle?: PuzzleCtrl;
 
   constructor(readonly redraw: () => void) {}
@@ -104,6 +106,14 @@ export class Ctrl {
     this.page = 'tv';
     this.redraw();
     this.tv = await TvCtrl.open(this);
+    this.redraw();
+  };
+
+  watchGame = async (id: string) => {
+    this.page = 'spectate';
+    this.spectate = undefined;
+    this.redraw();
+    this.spectate = await SpectateCtrl.open(this, id);
     this.redraw();
   };
 }
