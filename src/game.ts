@@ -106,7 +106,13 @@ export class GameCtrl implements BoardCtrl {
     new Promise<GameCtrl>(resolve => {
       let ctrl: GameCtrl;
       let stream: Stream;
+      let streamReady = false;
+      const pendingMessages: any[] = [];
       const handler = (msg: any) => {
+        if (!streamReady) {
+          pendingMessages.push(msg);
+          return;
+        }
         if (ctrl) {
           ctrl.handle(msg);
         } else {
@@ -118,6 +124,10 @@ export class GameCtrl implements BoardCtrl {
       };
       void (async () => {
         stream = await root.auth.openStream(`/api/board/game/stream/${id}`, {}, handler);
+        streamReady = true;
+        for (const pending of pendingMessages.splice(0)) {
+          handler(pending);
+        }
       })();
     });
 

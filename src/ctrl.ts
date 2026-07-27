@@ -15,6 +15,7 @@ export class Ctrl {
   stream?: Stream;
   page: Page = 'home';
   games = new OngoingGames();
+  private watchGameRequest = 0;
   game?: GameCtrl;
   seek?: SeekCtrl;
   challenge?: ChallengeCtrl;
@@ -110,10 +111,16 @@ export class Ctrl {
   };
 
   watchGame = async (id: string) => {
+    const request = ++this.watchGameRequest;
     this.page = 'spectate';
     this.spectate = undefined;
     this.redraw();
-    this.spectate = await SpectateCtrl.open(this, id);
+    const spectate = await SpectateCtrl.open(this, id);
+    if (request !== this.watchGameRequest) {
+      spectate.onUnmount();
+      return;
+    }
+    this.spectate = spectate;
     this.redraw();
   };
 }

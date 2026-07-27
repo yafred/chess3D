@@ -45,17 +45,24 @@ interface SpectatePlayer {
   seconds?: number;
 }
 
+const INITIAL_REPLAY_DELAY_MS = 330;
+
 export default class SpectateCtrl implements BoardCtrl {
   ground?: CgApi;
   chess: Chess = Chess.default();
   lastUpdateAt: number = Date.now();
   redrawInterval: ReturnType<typeof setInterval>;
+  replayQueue: any[] = [];
+  replayTimer?: ReturnType<typeof setTimeout>;
+  replayInitialBurst: boolean;
 
   constructor(
     readonly stream: Stream,
     public game: SpectateGame,
     readonly root: Ctrl,
+    replayInitialBurst: boolean,
   ) {
+    this.replayInitialBurst = replayInitialBurst;
     this.onUpdate();
     this.redrawInterval = setInterval(root.redraw, 100);
     this.awaitClose();
@@ -68,6 +75,11 @@ export default class SpectateCtrl implements BoardCtrl {
   onUnmount = () => {
     this.stream.close();
     clearInterval(this.redrawInterval);
+    if (this.replayTimer) {
+      clearTimeout(this.replayTimer);
+      this.replayTimer = undefined;
+    }
+    this.replayQueue = [];
   };
 
   player = (color: Color) => this.game.players[this.game.players[0].color === color ? 0 : 1];
@@ -76,11 +88,17 @@ export default class SpectateCtrl implements BoardCtrl {
     new Promise<SpectateCtrl>((resolve, reject) => {
       let ctrl: SpectateCtrl;
       let stream: Stream;
+      let streamReady = false;
+      const pendingMessages: any[] = [];
       const handler = (msg: any) => {
+        if (!streamReady) {
+          pendingMessages.push(msg);
+          return;
+        }
         if (ctrl) {
           ctrl.handle(msg);
         } else {
-          ctrl = new SpectateCtrl(stream, normalizeGame(msg, root), root);
+          ctrl = new SpectateCtrl(stream, normalizeGame(msg, root), root, shouldReplayInitialBurst(msg));
           resolve(ctrl);
         }
       };
@@ -88,6 +106,10 @@ export default class SpectateCtrl implements BoardCtrl {
         .openStream(`/api/stream/game/${id}`, {}, handler)
         .then(openedStream => {
           stream = openedStream;
+          streamReady = true;
+          for (const pending of pendingMessages.splice(0)) {
+            handler(pending);
+          }
         })
         .catch(reject);
     });
@@ -116,7 +138,28 @@ export default class SpectateCtrl implements BoardCtrl {
     this.lastUpdateAt = Date.now();
   };
 
-  private handle = (msg: any) => {
+  private scheduleReplay = () => {
+    if (this.replayTimer || this.replayQueue.length === 0) {
+      return;
+    }
+
+    this.replayTimer = setTimeout(() => {
+      this.replayTimer = undefined;
+      const next = this.replayQueue.shift();
+      if (next) {
+        this.applyMessage(next);
+      }
+
+      if (this.replayQueue.length > 0) {
+        this.scheduleReplay();
+      } else {
+        // Initial burst has been fully replayed; switch to live updates.
+        this.replayInitialBurst = false;
+      }
+    }, INITIAL_REPLAY_DELAY_MS);
+  };
+
+  private applyMessage = (msg: any) => {
     const isGameSnapshot = !!msg.players && !!msg.id;
     if (isGameSnapshot) {
       this.game = normalizeGame(msg, this.root, this.game);
@@ -146,6 +189,16 @@ export default class SpectateCtrl implements BoardCtrl {
       this.root.redraw();
     }
   };
+
+  private handle = (msg: any) => {
+    if (this.replayInitialBurst) {
+      this.replayQueue.push(msg);
+      this.scheduleReplay();
+      return;
+    }
+
+    this.applyMessage(msg);
+  };
 }
 
 const STANDARD_START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -155,6 +208,11 @@ const normalizeInitialFen = (fen?: string) => {
     return STANDARD_START_FEN;
   }
   return fen;
+};
+
+const shouldReplayInitialBurst = (game: SpectateStreamGame) => {
+  const referenceFen = normalizeInitialFen(game.initialFen);
+  return game.fen === undefined || game.fen !== referenceFen || typeof game.lastMove === 'string';
 };
 
 const normalizeGame = (game: SpectateStreamGame, root: Ctrl, previous?: SpectateGame): SpectateGame => {
