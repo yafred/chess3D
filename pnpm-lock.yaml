@@ -30,8 +30,8 @@ importers:
         specifier: ^3.6.3
         version: 3.6.3
       three:
-        specifier: ^0.183.2
-        version: 0.183.2
+        specifier: ^0.185.1
+        version: 0.185.1
     devDependencies:
       '@types/page':
         specifier: ^1.11.9
@@ -1019,8 +1019,8 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  three@0.183.2:
-    resolution: {integrity: sha512-di3BsL2FEQ1PA7Hcvn4fyJOlxRRgFYBpMTcyOgkwJIaDOdJMebEFPA+t98EvjuljDx4hNulAGwF6KIjtwI5jgQ==}
+  three@0.185.1:
+    resolution: {integrity: sha512-5aojFCXKwnjBRZvUnt3WFfEcvUJgkN5LlijRFN95hMy8WVkG4I0QNcJE+OuWvuJ0bOdStrbfXn0pkd6/QyiAlg==}
 
   tinyglobby@0.2.16:
     resolution: {integrity: sha512-pn99VhoACYR8nFHhxqix+uvsbXineAasWm5ojXoN8xEwK5Kd3/TrhNn1wByuD52UxWRLy8pu+kRMniEi6Eq9Zg==}
@@ -1871,7 +1871,7 @@ snapshots:
       source-map-support: 0.5.21
     optional: true
 
-  three@0.183.2: {}
+  three@0.185.1: {}
 
   tinyglobby@0.2.16:
     dependencies:
