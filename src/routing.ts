@@ -52,7 +52,9 @@ export default function Routing(ctrl: Ctrl) {
     }
 
     const hashbangPath = readHashbangPath();
-    if (!hashbangPath) return;
+    if (!hashbangPath) {
+      return;
+    }
 
     const canonicalHash = `#!${hashbangPath}`;
     if (location.hash !== canonicalHash) {
