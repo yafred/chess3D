@@ -102,9 +102,11 @@ export class PuzzleCtrl implements BoardCtrl {
       }
       const userMoveUci = makeUci(normalMove);
       const expectedMove = this.puzzle.solution[this.solutionIndex];
+      // A move that delivers checkmate always solves the puzzle
+      const isCheckmate = this.chess.isCheckmate();
 
-      if (userMoveUci === expectedMove) {
-        if (this.solutionIndex + 2 < this.puzzle.solution.length) {
+      if (isCheckmate || userMoveUci === expectedMove) {
+        if (!isCheckmate && this.solutionIndex + 2 < this.puzzle.solution.length) {
           const opponentMove = this.puzzle.solution[this.solutionIndex + 1];
           const opponentMoveParsed = parseUci(opponentMove);
           if (opponentMoveParsed) {
