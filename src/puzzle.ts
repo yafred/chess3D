@@ -37,6 +37,8 @@ export class PuzzleCtrl implements BoardCtrl {
   canMove = false;
   solutionIndex = 0;
   promotionRole: Role = 'queen';
+  solvedStreak = 0;
+  private attemptFailed = false;
 
   constructor(private root: Ctrl) {
     this.onUpdate();
@@ -116,14 +118,22 @@ export class PuzzleCtrl implements BoardCtrl {
           }, 200);
         } else {
           this.markAsSolved(true);
+          if (!this.attemptFailed) {
+            this.solvedStreak += 1;
+          }
+          this.onUpdate();
+          this.root.redraw();
           alert('Puzzle solved!');
         }
       } else {
+        this.attemptFailed = true;
+        this.solvedStreak = 0;
         const restoredSetup = parseFen(beforeMoveFen).unwrap();
         this.chess = Chess.fromSetup(restoredSetup).unwrap();
         this.lastMove = beforeMoveLastMove;
         this.canMove = true;
         this.onUpdate();
+        this.root.redraw();
       }
     }, 200);
   };
@@ -168,6 +178,7 @@ export class PuzzleCtrl implements BoardCtrl {
 
   setPuzzleTheme = (theme: string) => {
     this.puzzleTheme = theme;
+    this.solvedStreak = 0;
   };
 
   private initPuzzle = async (puzzleResponse: PuzzleResponse) => {
@@ -181,6 +192,7 @@ export class PuzzleCtrl implements BoardCtrl {
       this.canMove = true;
       this.solutionIndex = 0;
       this.puzzle.pov = this.chess.turn;
+      this.attemptFailed = false;
 
       this.onUpdate();
       this.root.redraw();

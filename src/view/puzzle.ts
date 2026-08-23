@@ -16,6 +16,7 @@ const renderButtons = (ctrl: PuzzleCtrl) => {
   const trainingUrl = loadedPuzzleId ? `https://lichess.org/training/${loadedPuzzleId}` : '';
 
   return h('div.d-flex.flex-column.gap-2.mt-4', [
+    h('div.small.text-muted', `Solved streak: ${ctrl.solvedStreak}`),
     h(
       'button.btn.btn-secondary',
       {
