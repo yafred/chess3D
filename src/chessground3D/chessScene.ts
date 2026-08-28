@@ -1,5 +1,7 @@
 import type * as THREE from 'three';
 
+import type { Config } from '@lichess-org/chessground/config';
+
 import { updateCheckHighlight } from './logic/checkHighlight.js';
 import { fenToScene } from './logic/fen.js';
 import { createPieceHoverController } from './logic/hover.js';
@@ -16,35 +18,17 @@ import { createControls, getWhiteAzimuthAngle, setControlsOrientation } from './
 import { registerSceneRenderStep } from './systems/renderScheduler.js';
 import { handleResize } from './systems/resize.js';
 
-const SCENE_ASSET_URL = new URL('./public/scene.glb', import.meta.url).href;
+const SCENE_ASSET_URL = 'http://localhost:9663/assets/scene.glb';
 const DEFAULT_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 
 type ChessColor = 'white' | 'black';
 type ChessKey = string;
 
-export interface ChessSceneConfig {
-  viewOnly?: boolean;
-  orientation?: ChessColor;
-  fen?: string;
-  lastMove?: readonly ChessKey[];
-  turnColor?: ChessColor;
-  check?: ChessColor | boolean;
-  highlight?: {
-    lastMove?: boolean;
-    check?: boolean;
-  };
-  movable?: {
-    color?: ChessColor | 'both';
-    dests?: Map<ChessKey, readonly ChessKey[]>;
-    showDests?: boolean;
-  };
-  events?: {
-    move?: (...args: any[]) => void;
-  };
-}
+export type ChessSceneConfig = Config;
 
 export interface ChessScene {
   set(config: Partial<ChessSceneConfig>): void;
+  move(from: ChessKey, to: ChessKey): void;
   destroy(): void;
 }
 
@@ -102,9 +86,20 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
 
   let allowedMoveDests = config.movable?.dests;
   let showDests = config.movable?.showDests ?? true;
-  interactionController.setAllowedMoveDests(allowedMoveDests, showDests);
+  type MoveEventCallback = NonNullable<NonNullable<Config['events']>['move']>;
+  type MoveAfterCallback = NonNullable<NonNullable<NonNullable<Config['movable']>['events']>['after']>;
+  let currentMoveHandler: MoveEventCallback | undefined = config.events?.move;
+  let currentAfterMoveHandler: MoveAfterCallback | undefined = config.movable?.events?.after;
 
-  setupMoveAttemptAdapter(interactionController, () => allowedMoveDests, config.events?.move);
+  function notifyMove(from: string, to: string) {
+    currentMoveHandler?.(from as any, to as any);
+    currentAfterMoveHandler?.(from as any, to as any, { premove: false });
+  }
+
+  interactionController.setAllowedMoveDests(allowedMoveDests, showDests);
+  currentMoveHandler = config.events?.move;
+  currentAfterMoveHandler = config.movable?.events?.after;
+  setupMoveAttemptAdapter(interactionController, () => allowedMoveDests, notifyMove);
 
   function setAllowInteractionForColors(config: Partial<ChessSceneConfig>) {
     applyInteractionPolicy(interactionController, {
@@ -170,7 +165,12 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
       if ('movable' in config) {
         allowedMoveDests = config.movable?.dests;
         showDests = config.movable?.showDests ?? true;
+        currentAfterMoveHandler = config.movable?.events?.after;
         interactionController.setAllowedMoveDests(allowedMoveDests, showDests);
+      }
+
+      if ('events' in config) {
+        currentMoveHandler = config.events?.move;
       }
 
       if ('viewOnly' in config) {
@@ -182,6 +182,10 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
       }
 
       setAllowInteractionForColors(config);
+    },
+
+    move(from, to) {
+      interactionController.moveProgrammaticallyBySquare(from, to);
     },
 
     destroy() {

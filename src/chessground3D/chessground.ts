@@ -1,5 +1,6 @@
 import { type Api } from '@lichess-org/chessground/api';
-import { type Config } from '@lichess-org/chessground/config';
+import { type Config, configure } from '@lichess-org/chessground/config';
+import { defaults, type HeadlessState, type State } from '@lichess-org/chessground/state';
 
 import { createChessScene } from './chessScene';
 
@@ -15,16 +16,24 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
     };
   }
 
+  const maybeState : HeadlessState = defaults();
+  configure(maybeState, config || {});
+  const state = maybeState as State;
+
+
   return {
-    state: {} as any,
+    state: state,
 
     set(config) {
+      configure(state, config);
       scene.set(config);
     },
 
     getFen: notImplemented('getFen', ''),
     toggleOrientation: notImplemented('toggleOrientation'),
-    move: notImplemented('move'),
+    move(orig, dest) {
+      scene.move(orig, dest);
+    },
     setPieces: notImplemented('setPieces'),
     selectSquare: notImplemented('selectSquare'),
     newPiece: notImplemented('newPiece'),

@@ -1,0 +1,17 @@
+{
+  "name": "chessground3D",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@lichess-org/chessground": "^10.1.1",
+    "three": "^0.185.1"
+  },
+  "exports": {
+    ".": {
+      "types": "./chessground.ts",
+      "import": {
+        "source": "./chessground.ts"
+      }
+    }
+  }
+}

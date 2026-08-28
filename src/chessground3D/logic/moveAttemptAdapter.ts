@@ -5,8 +5,8 @@ export function setupMoveAttemptAdapter(
   getAllowedMoveDests: () => Map<string, readonly string[]> | undefined,
   onMove?: (from: string, to: string) => void,
 ) {
-  if (!onMove) {
-    return;
+  if (onMove) {
+    interactionController.setMoveCallback(onMove);
   }
 
   interactionController.setMoveAttemptCallback(uci => {
@@ -18,7 +18,6 @@ export function setupMoveAttemptAdapter(
       return false;
     }
 
-    onMove(from, to);
     return true;
   });
 }

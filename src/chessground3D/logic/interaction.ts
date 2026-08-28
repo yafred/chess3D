@@ -34,6 +34,7 @@ export type PieceInteractionController = {
   setLastMoveSquares: (squares?: readonly string[]) => void;
   setAllowedMoveDests: (dests?: Map<string, readonly string[]>, showDests?: boolean) => void;
   setMoveAttemptCallback: (callback: (uci: string) => boolean) => void; // Set callback for validating user moves
+  setMoveCallback: (callback: (from: string, to: string) => void) => void; // Set callback after a successful move
   setAllowWhiteInteraction: (allow: boolean) => void;
   setAllowBlackInteraction: (allow: boolean) => void;
   setInteractionEnabled: (enabled: boolean) => void;
@@ -91,6 +92,7 @@ export function setupPieceInteraction({
   let activeMouseButton: number | null = null;
   let hoverDisabledForOrbit = false;
   let onMoveAttempt: ((uci: string) => boolean) | undefined = undefined;
+  let onMove: ((from: string, to: string) => void) | undefined = undefined;
   let allowWhiteInteraction = initialAllowWhiteInteraction;
   let allowBlackInteraction = initialAllowBlackInteraction;
   let interactionEnabled = true;
@@ -285,10 +287,13 @@ export function setupPieceInteraction({
 
     const fromSquareX = getSquareCoordinate(fromX);
     const fromSquareZ = getSquareCoordinate(fromZ);
+    const targetSquareX = getSquareCoordinate(targetX);
+    const targetSquareZ = getSquareCoordinate(targetZ);
     const occupyingPiece = getPieceAtSquare(targetX, targetZ, movingPiece);
     if (!occupyingPiece) {
       movingPiece.position.set(targetX, movingPiece.position.y, targetZ);
       setLastMoveHighlights(fromSquareX, fromSquareZ, targetX, targetZ);
+      onMove?.(coordinatesToSquare(fromSquareX, fromSquareZ), coordinatesToSquare(targetSquareX, targetSquareZ));
       return true;
     }
 
@@ -299,11 +304,16 @@ export function setupPieceInteraction({
     scene.remove(occupyingPiece);
     movingPiece.position.set(targetX, movingPiece.position.y, targetZ);
     setLastMoveHighlights(fromSquareX, fromSquareZ, targetX, targetZ);
+    onMove?.(coordinatesToSquare(fromSquareX, fromSquareZ), coordinatesToSquare(targetSquareX, targetSquareZ));
     return true;
   }
 
   function setMoveAttemptCallback(callback: (uci: string) => boolean) {
     onMoveAttempt = callback;
+  }
+
+  function setMoveCallback(callback: (from: string, to: string) => void) {
+    onMove = callback;
   }
 
   function setAllowedMoveDests(dests?: Map<string, readonly string[]>, nextShowDests = true) {
@@ -683,6 +693,7 @@ export function setupPieceInteraction({
     setLastMoveSquares,
     setAllowedMoveDests,
     setMoveAttemptCallback,
+    setMoveCallback,
     setAllowWhiteInteraction,
     setAllowBlackInteraction,
     setInteractionEnabled,
