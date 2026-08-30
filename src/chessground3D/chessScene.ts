@@ -3,7 +3,7 @@ import type * as THREE from 'three';
 import type { Config } from '@lichess-org/chessground/config';
 
 import { updateCheckHighlight } from './logic/checkHighlight.js';
-import { fenToScene } from './logic/fen.js';
+import { fenToScene, sceneToFen } from './logic/fen.js';
 import { createPieceHoverController } from './logic/hover.js';
 import { setupPieceInteraction } from './logic/interaction.js';
 import { applyInteractionPolicy } from './logic/interactionPolicy.js';
@@ -30,6 +30,7 @@ export type ChessSceneConfig = Config;
 export interface ChessScene {
   set(config: Partial<ChessSceneConfig>): void;
   move(from: ChessKey, to: ChessKey): void;
+  getFen(): string;
   destroy(): void;
 }
 
@@ -187,6 +188,10 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
 
     move(from, to) {
       interactionController.moveProgrammaticallyBySquare(from, to);
+    },
+
+    getFen() {
+      return sceneToFen(scene);
     },
 
     destroy() {

@@ -29,7 +29,9 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
       scene.set(config);
     },
 
-    getFen: notImplemented('getFen', ''),
+    getFen() {
+      return scene.getFen();
+    },
     toggleOrientation: notImplemented('toggleOrientation'),
     move(orig, dest) {
       scene.move(orig, dest);

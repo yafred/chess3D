@@ -9,6 +9,46 @@ const pieceMap: Record<string, string> = {
   K: 'King',
 };
 
+const pieceCodes = new Set(['K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 'r', 'b', 'n', 'p']);
+
+export function sceneToFen(scene: THREE.Scene): string {
+  const board: (string | undefined)[][] = Array.from({ length: 8 }, () => Array.from({ length: 8 }));
+
+  scene.traverse(obj => {
+    if (!(obj instanceof THREE.Mesh) || !pieceCodes.has(obj.name) || !obj.userData?.isFenClone) {
+      return;
+    }
+
+    const c = Math.round(obj.position.x + 3.5);
+    const r = Math.round(obj.position.z + 3.5);
+    if (r >= 0 && r < 8 && c >= 0 && c < 8) {
+      board[r][c] = obj.name;
+    }
+  });
+
+  return board
+    .map(row => {
+      let fenRow = '';
+      let emptyCount = 0;
+      for (const piece of row) {
+        if (piece) {
+          if (emptyCount > 0) {
+            fenRow += emptyCount;
+            emptyCount = 0;
+          }
+          fenRow += piece;
+        } else {
+          emptyCount++;
+        }
+      }
+      if (emptyCount > 0) {
+        fenRow += emptyCount;
+      }
+      return fenRow;
+    })
+    .join('/');
+}
+
 export function fenToScene(
   fen: string,
   scene: THREE.Scene,
