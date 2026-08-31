@@ -274,6 +274,7 @@ export function setupPieceInteraction({
     fromX = movingPiece.position.x,
     fromZ = movingPiece.position.z,
     validateWithCallback = true,
+    triggerMoveCallback = true,
   ): boolean {
     // Validate move through callback if provided
     if (validateWithCallback && onMoveAttempt) {
@@ -293,7 +294,9 @@ export function setupPieceInteraction({
     if (!occupyingPiece) {
       movingPiece.position.set(targetX, movingPiece.position.y, targetZ);
       setLastMoveHighlights(fromSquareX, fromSquareZ, targetX, targetZ);
-      onMove?.(coordinatesToSquare(fromSquareX, fromSquareZ), coordinatesToSquare(targetSquareX, targetSquareZ));
+      if (triggerMoveCallback) {
+        onMove?.(coordinatesToSquare(fromSquareX, fromSquareZ), coordinatesToSquare(targetSquareX, targetSquareZ));
+      }
       return true;
     }
 
@@ -304,7 +307,9 @@ export function setupPieceInteraction({
     scene.remove(occupyingPiece);
     movingPiece.position.set(targetX, movingPiece.position.y, targetZ);
     setLastMoveHighlights(fromSquareX, fromSquareZ, targetX, targetZ);
-    onMove?.(coordinatesToSquare(fromSquareX, fromSquareZ), coordinatesToSquare(targetSquareX, targetSquareZ));
+    if (triggerMoveCallback) {
+      onMove?.(coordinatesToSquare(fromSquareX, fromSquareZ), coordinatesToSquare(targetSquareX, targetSquareZ));
+    }
     return true;
   }
 
@@ -382,7 +387,7 @@ export function setupPieceInteraction({
       return false;
     }
 
-    const moved = applyMoveOrCapture(movingPiece, targetX, targetZ, sourceX, sourceZ, false);
+    const moved = applyMoveOrCapture(movingPiece, targetX, targetZ, sourceX, sourceZ, false, false);
     if (!moved) {
       return false;
     }
