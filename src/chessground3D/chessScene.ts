@@ -1,10 +1,9 @@
 import { type Config } from '@lichess-org/chessground/config';
-import { write as fenWrite } from '@lichess-org/chessground/fen';
 import { type State } from '@lichess-org/chessground/state';
 import type * as THREE from 'three';
 
 import { updateCheckHighlight } from './logic/checkHighlight.js';
-import { fenToScene, sceneToFen } from './logic/fen.js';
+import { piecesToScene, sceneToFen } from './logic/fen.js';
 import { createPieceHoverController } from './logic/hover.js';
 import { setupPieceInteraction } from './logic/interaction.js';
 import { applyInteractionPolicy } from './logic/interactionPolicy.js';
@@ -116,7 +115,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
       pieceTemplates = loadedPieces;
       materialTemplates = loadedMaterials;
 
-      fenToScene(fenWrite(state.pieces), scene, pieceTemplates, materialTemplates);
+      piecesToScene(state.pieces, scene, pieceTemplates, materialTemplates);
       interactionController.setLastMoveSquares(state.highlight.lastMove ? state.lastMove : undefined);
       updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
 
@@ -138,7 +137,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
         interactionController.setLastMoveSquares(state.lastMove);
       }
 
-      fenToScene(fenWrite(state.pieces), scene, pieceTemplates, materialTemplates);
+      piecesToScene(state.pieces, scene, pieceTemplates, materialTemplates);
       updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
 
       if (state.highlight.check) {
