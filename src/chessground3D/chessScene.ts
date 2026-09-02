@@ -1,7 +1,7 @@
-import type * as THREE from 'three';
-import type { State } from '@lichess-org/chessground/state';
-import type { Config } from '@lichess-org/chessground/config';
+import { type Config } from '@lichess-org/chessground/config';
 import { write as fenWrite } from '@lichess-org/chessground/fen';
+import { type State } from '@lichess-org/chessground/state';
+import type * as THREE from 'three';
 
 import { updateCheckHighlight } from './logic/checkHighlight.js';
 import { fenToScene, sceneToFen } from './logic/fen.js';
@@ -55,9 +55,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
   let currentOrientation: ChessColor | undefined;
   let currentTurnColor: ChessColor | undefined = config.turnColor;
   let currentCheck: ChessColor | boolean | undefined = config.check;
-  let currentLastMove: readonly ChessKey[] | undefined = config.lastMove;
   let highlightCheck = config.highlight?.check ?? true;
-  let highlightLastMove = config.highlight?.lastMove ?? true;
   let isViewOnly = !!config.viewOnly;
 
   const whiteAzimuthAngle = getWhiteAzimuthAngle(controls);
@@ -114,12 +112,12 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
 
   // Load scene and templates (pieces and materials)
   void createPieceTemplates(scene, SCENE_ASSET_URL).then(
-    ({ pieceTemplates: loadedPieces, materialTemplates : loadedMaterials }) => {
+    ({ pieceTemplates: loadedPieces, materialTemplates: loadedMaterials }) => {
       pieceTemplates = loadedPieces;
       materialTemplates = loadedMaterials;
 
       fenToScene(fenWrite(state.pieces), scene, pieceTemplates, materialTemplates);
-      interactionController.setLastMoveSquares(highlightLastMove ? currentLastMove : undefined);
+      interactionController.setLastMoveSquares(state.highlight.lastMove ? state.lastMove : undefined);
       updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
 
       scene.visible = true;
@@ -136,19 +134,15 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
   // API implementation
   return {
     set(config, state) {
-      if ('lastMove' in config) {
-        currentLastMove = config.lastMove;
-        interactionController.setLastMoveSquares(highlightLastMove ? config.lastMove : undefined);
+      if (state.highlight.lastMove) {
+        interactionController.setLastMoveSquares(state.lastMove);
       }
 
-      if (config.fen) {
-        fenToScene(fenWrite(state.pieces), scene, pieceTemplates, materialTemplates);
-        updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
-      }
+      fenToScene(fenWrite(state.pieces), scene, pieceTemplates, materialTemplates);
+      updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
 
-      if ('highlight' in config) {
-        highlightLastMove = config.highlight?.lastMove ?? true;
-        highlightCheck = config.highlight?.check ?? true;
+      if (state.highlight.check) {
+        highlightCheck = state.highlight.check;
         updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
       }
 

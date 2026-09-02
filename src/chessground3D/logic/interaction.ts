@@ -1,3 +1,5 @@
+import { type Key } from '@lichess-org/chessground/types';
+import { key2pos } from '@lichess-org/chessground/util';
 import * as THREE from 'three';
 import { type OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
@@ -31,7 +33,7 @@ type SetupPieceInteractionParams = {
 export type PieceInteractionController = {
   moveProgrammatically: (fromX: number, fromZ: number, toX: number, toZ: number) => boolean;
   moveProgrammaticallyBySquare: (from: string, to: string) => boolean;
-  setLastMoveSquares: (squares?: readonly string[]) => void;
+  setLastMoveSquares: (squares?: readonly Key[]) => void;
   setAllowedMoveDests: (dests?: Map<string, readonly string[]>, showDests?: boolean) => void;
   setMoveAttemptCallback: (callback: (uci: string) => boolean) => void; // Set callback for validating user moves
   setMoveCallback: (callback: (from: string, to: string) => void) => void; // Set callback after a successful move
@@ -155,6 +157,17 @@ export function setupPieceInteraction({
 
   hoverController.setPieceHighlightFilter(canInteractWithPiece);
 
+  function keyToCoordinates(key: Key): { x: number; z: number } | null {
+    const pos = key2pos(key);
+    if (!pos) {
+      return null;
+    }
+    return {
+      x: pos[0] - 3.5,
+      z: 4.5 - pos[1],
+    };
+  }
+
   function parseSquare(square: string): { x: number; z: number } | null {
     const normalized = square.trim().toLowerCase();
     if (!/^[a-h][1-8]$/.test(normalized)) {
@@ -208,13 +221,13 @@ export function setupPieceInteraction({
     lastMoveToHighlight.visible = false;
   }
 
-  function setLastMoveSquares(squares?: readonly string[]) {
+  function setLastMoveSquares(squares?: readonly Key[]) {
     if (!squares || squares.length === 0) {
       clearLastMoveHighlights();
       return;
     }
 
-    const from = parseSquare(squares[0]);
+    const from = keyToCoordinates(squares[0]);
     if (!from) {
       clearLastMoveHighlights();
       return;
@@ -228,7 +241,7 @@ export function setupPieceInteraction({
       return;
     }
 
-    const to = parseSquare(squares[1]);
+    const to = keyToCoordinates(squares[1]);
     if (!to) {
       clearLastMoveHighlights();
       return;
@@ -295,7 +308,10 @@ export function setupPieceInteraction({
       movingPiece.position.set(targetX, movingPiece.position.y, targetZ);
       setLastMoveHighlights(fromSquareX, fromSquareZ, targetX, targetZ);
       if (triggerMoveCallback) {
-        onMove?.(coordinatesToSquare(fromSquareX, fromSquareZ), coordinatesToSquare(targetSquareX, targetSquareZ));
+        onMove?.(
+          coordinatesToSquare(fromSquareX, fromSquareZ),
+          coordinatesToSquare(targetSquareX, targetSquareZ),
+        );
       }
       return true;
     }
@@ -308,7 +324,10 @@ export function setupPieceInteraction({
     movingPiece.position.set(targetX, movingPiece.position.y, targetZ);
     setLastMoveHighlights(fromSquareX, fromSquareZ, targetX, targetZ);
     if (triggerMoveCallback) {
-      onMove?.(coordinatesToSquare(fromSquareX, fromSquareZ), coordinatesToSquare(targetSquareX, targetSquareZ));
+      onMove?.(
+        coordinatesToSquare(fromSquareX, fromSquareZ),
+        coordinatesToSquare(targetSquareX, targetSquareZ),
+      );
     }
     return true;
   }

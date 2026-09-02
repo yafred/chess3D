@@ -49,6 +49,7 @@ export function sceneToFen(scene: THREE.Scene): string {
     .join('/');
 }
 
+// TODO: Use pieces from state
 export function fenToScene(
   fen: string,
   scene: THREE.Scene,
