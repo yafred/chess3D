@@ -19,14 +19,14 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
   configure(maybeState, config || {});
   const state = maybeState as State;
 
-  const scene = createChessScene(element, config || {});
+  const scene = createChessScene(element, config || {}, state);
 
   return {
     state: state,
 
     set(config) {
       configure(state, config);
-      scene.set(config);
+      scene.set(config, state);
     },
 
     getFen() {
