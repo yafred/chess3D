@@ -164,7 +164,7 @@ export function setupPieceInteraction({
     }
     return {
       x: pos[0] - 3.5,
-      z: 4.5 - pos[1],
+      z: 4.5 - (pos[1] + 1),
     };
   }
 
