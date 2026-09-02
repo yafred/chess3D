@@ -5,7 +5,6 @@ import { defaults, type HeadlessState, type State } from '@lichess-org/chessgrou
 import { createChessScene } from './chessScene';
 
 export function Chessground(element: HTMLElement, config?: Config): Api {
-  const scene = createChessScene(element, config || {});
 
   function notImplemented(name: string): () => void;
   function notImplemented<T>(name: string, returnValue: T): () => T;
@@ -20,6 +19,7 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
   configure(maybeState, config || {});
   const state = maybeState as State;
 
+  const scene = createChessScene(element, config || {});
 
   return {
     state: state,

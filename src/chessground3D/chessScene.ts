@@ -18,8 +18,8 @@ import { createControls, getWhiteAzimuthAngle, setControlsOrientation } from './
 import { registerSceneRenderStep } from './systems/renderScheduler.js';
 import { handleResize } from './systems/resize.js';
 
-// const SCENE_ASSET_URL = new URL('./public/scene.glb', import.meta.url).href; // Chess3D
-const SCENE_ASSET_URL = 'http://localhost:9663/assets/scene.glb'; // Lila
+const SCENE_ASSET_URL = new URL('./public/scene.glb', import.meta.url).href; // Chess3D
+// const SCENE_ASSET_URL = 'http://localhost:9663/assets/scene.glb'; // Lila
 const DEFAULT_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 
 type ChessColor = 'white' | 'black';
@@ -49,8 +49,8 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
   scene.add(checkHighlight);
   handleResize(sceneRoot, camera, renderer);
 
-  let materials = new Map<string, THREE.Material>();
-  let pieces = new Map<string, THREE.Mesh>();
+  let materialTemplates = new Map<string, THREE.Material>();
+  let pieceTemplates = new Map<string, THREE.Mesh>();
   let isDestroyed = false;
   let currentOrientation: ChessColor | undefined;
   let currentTurnColor: ChessColor | undefined = config.turnColor;
@@ -113,13 +113,13 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
 
   setAllowInteractionForColors(config);
 
-  // Load the scene and pieces
+  // Load scene and templates (pieces and materials)
   void createPieceTemplates(scene, SCENE_ASSET_URL).then(
-    ({ pieces: loadedPieces, materials: loadedMaterials }) => {
-      pieces = loadedPieces;
-      materials = loadedMaterials;
+    ({ pieceTemplates: loadedPieces, materialTemplates : loadedMaterials }) => {
+      pieceTemplates = loadedPieces;
+      materialTemplates = loadedMaterials;
 
-      fenToScene(currentFen || DEFAULT_FEN, scene, pieces, materials);
+      fenToScene(currentFen || DEFAULT_FEN, scene, pieceTemplates, materialTemplates);
       interactionController.setLastMoveSquares(highlightLastMove ? currentLastMove : undefined);
       updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
 
@@ -144,7 +144,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
 
       if (config.fen) {
         currentFen = config.fen;
-        fenToScene(currentFen, scene, pieces, materials);
+        fenToScene(currentFen, scene, pieceTemplates, materialTemplates);
         updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
       }
 

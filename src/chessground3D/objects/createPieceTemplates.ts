@@ -5,8 +5,8 @@ const pieceNames = new Set(['King', 'Queen', 'Rook', 'Bishop', 'Knight', 'Pawn']
 const materialNames = new Set(['white piece', 'black piece']);
 
 export type PieceTemplates = {
-  pieces: Map<string, THREE.Mesh>;
-  materials: Map<string, THREE.Material>;
+  pieceTemplates: Map<string, THREE.Mesh>;
+  materialTemplates: Map<string, THREE.Material>;
 };
 
 export function createPieceTemplates(scene: THREE.Scene, sceneAssetUrl: string): Promise<PieceTemplates> {
@@ -20,8 +20,8 @@ export function createPieceTemplates(scene: THREE.Scene, sceneAssetUrl: string):
         scene.add(gltf.scene);
         gltf.scene.scale.set(1, 1, 1);
 
-        const pieces = new Map<string, THREE.Mesh>();
-        const materials = new Map<string, THREE.Material>();
+        const pieceTemplates = new Map<string, THREE.Mesh>();
+        const materialTemplates = new Map<string, THREE.Material>();
 
         gltf.scene.traverse(obj => {
           if (!(obj instanceof THREE.Mesh) || !pieceNames.has(obj.name)) {
@@ -29,14 +29,14 @@ export function createPieceTemplates(scene: THREE.Scene, sceneAssetUrl: string):
           }
 
           obj.visible = false;
-          pieces.set(obj.name, obj);
+          pieceTemplates.set(obj.name, obj);
 
           if (obj.material && !Array.isArray(obj.material) && materialNames.has(obj.material.name)) {
-            materials.set(obj.material.name, obj.material);
+            materialTemplates.set(obj.material.name, obj.material);
           }
         });
 
-        resolve({ pieces, materials });
+        resolve({ pieceTemplates, materialTemplates });
       },
       undefined,
       error => reject(error),
