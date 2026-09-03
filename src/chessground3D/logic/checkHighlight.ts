@@ -3,11 +3,7 @@ import * as THREE from 'three';
 
 import { keyToCoordinates } from './interaction.js';
 
-export function updateCheckHighlight(
-  marker: THREE.Mesh,
-  square: Key | undefined,
-  highlightCheck: boolean,
-) {
+export function updateCheckHighlight(marker: THREE.Mesh, square: Key | undefined, highlightCheck: boolean) {
   const checkedSquare = square ? keyToCoordinates(square) : undefined;
 
   if (checkedSquare && highlightCheck) {
