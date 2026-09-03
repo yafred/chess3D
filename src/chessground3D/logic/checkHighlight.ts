@@ -3,20 +3,7 @@ import * as THREE from 'three';
 
 import { keyToCoordinates } from './interaction.js';
 
-type ChessColor = 'white' | 'black';
-
-function getCheckedColor(check: ChessColor | boolean | undefined, turnColor: ChessColor | undefined) {
-  if (!check) {
-    return undefined;
-  }
-  if (check === true) {
-    return turnColor;
-  }
-  return check;
-}
-
 export function updateCheckHighlight(
-  scene: THREE.Scene,
   marker: THREE.Mesh,
   square: Key | undefined,
   highlightCheck: boolean,
