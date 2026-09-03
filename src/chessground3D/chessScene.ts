@@ -142,9 +142,20 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
 
       interactionController.setAllowedMoveDests(state.movable.dests, state.movable.showDests);
 
-      currentAfterMoveHandler = state.movable?.events?.after;
-      currentMoveHandler = state.events.move;
+      if ('turnColor' in config) {
+        currentTurnColor = config.turnColor;
+      }
 
+      if ('movable' in config) {
+        allowedMoveDests = config.movable?.dests;
+        showDests = config.movable?.showDests ?? true;
+        currentAfterMoveHandler = config.movable?.events?.after;
+        interactionController.setAllowedMoveDests(allowedMoveDests, showDests);
+      }
+
+      if ('events' in config) {
+        currentMoveHandler = config.events?.move;
+      }
       if ('viewOnly' in config) {
         isViewOnly = !!config.viewOnly;
       }
