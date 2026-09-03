@@ -137,7 +137,9 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
         interactionController.setLastMoveSquares(state.lastMove);
       }
 
-      piecesToScene(state.pieces, scene, pieceTemplates, materialTemplates);
+      if ('fen' in config) {
+        piecesToScene(state.pieces, scene, pieceTemplates, materialTemplates);
+      }
       updateCheckHighlight(checkHighlight, state.check, state.highlight.check);
 
       interactionController.setAllowedMoveDests(state.movable.dests, state.movable.showDests);
