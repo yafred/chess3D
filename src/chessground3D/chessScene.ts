@@ -117,7 +117,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
 
       piecesToScene(state.pieces, scene, pieceTemplates, materialTemplates);
       interactionController.setLastMoveSquares(state.highlight.lastMove ? state.lastMove : undefined);
-      updateCheckHighlight(scene, checkHighlight, state.check, state.highlight.check);
+      updateCheckHighlight(checkHighlight, state.check, state.highlight.check);
 
       scene.visible = true;
     },
@@ -138,7 +138,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
       }
 
       piecesToScene(state.pieces, scene, pieceTemplates, materialTemplates);
-      updateCheckHighlight(scene, checkHighlight, state.check, state.highlight.check);
+      updateCheckHighlight(checkHighlight, state.check, state.highlight.check);
 
       interactionController.setAllowedMoveDests(state.movable.dests, state.movable.showDests);
 
