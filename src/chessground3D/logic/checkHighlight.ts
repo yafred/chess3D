@@ -1,5 +1,5 @@
 import { type Key } from '@lichess-org/chessground/types';
-import * as THREE from 'three';
+import type * as THREE from 'three';
 
 import { keyToCoordinates } from './interaction.js';
 

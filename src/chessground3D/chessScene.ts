@@ -52,9 +52,6 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
   let pieceTemplates = new Map<string, THREE.Mesh>();
   let isDestroyed = false;
   let currentOrientation: ChessColor | undefined;
-  let currentTurnColor: ChessColor | undefined = config.turnColor;
-  let currentCheck: ChessColor | boolean | undefined = config.check;
-  let highlightCheck = config.highlight?.check ?? true;
   let isViewOnly = !!config.viewOnly;
 
   const whiteAzimuthAngle = getWhiteAzimuthAngle(controls);
@@ -143,10 +140,6 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
       updateCheckHighlight(checkHighlight, state.check, state.highlight.check);
 
       interactionController.setAllowedMoveDests(state.movable.dests, state.movable.showDests);
-
-      if ('turnColor' in config) {
-        currentTurnColor = config.turnColor;
-      }
 
       if ('movable' in config) {
         allowedMoveDests = config.movable?.dests;
