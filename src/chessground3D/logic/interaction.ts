@@ -42,6 +42,17 @@ export type PieceInteractionController = {
   setInteractionEnabled: (enabled: boolean) => void;
 };
 
+export function keyToCoordinates(key: Key): { x: number; z: number } | null {
+  const pos = key2pos(key);
+  if (!pos) {
+    return null;
+  }
+  return {
+    x: pos[0] - 3.5,
+    z: 4.5 - (pos[1] + 1),
+  };
+}
+
 export function setupPieceInteraction({
   scene,
   camera,
@@ -156,17 +167,6 @@ export function setupPieceInteraction({
   }
 
   hoverController.setPieceHighlightFilter(canInteractWithPiece);
-
-  function keyToCoordinates(key: Key): { x: number; z: number } | null {
-    const pos = key2pos(key);
-    if (!pos) {
-      return null;
-    }
-    return {
-      x: pos[0] - 3.5,
-      z: 4.5 - (pos[1] + 1),
-    };
-  }
 
   function parseSquare(square: string): { x: number; z: number } | null {
     const normalized = square.trim().toLowerCase();

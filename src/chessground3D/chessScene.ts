@@ -117,7 +117,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
 
       piecesToScene(state.pieces, scene, pieceTemplates, materialTemplates);
       interactionController.setLastMoveSquares(state.highlight.lastMove ? state.lastMove : undefined);
-      updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
+      updateCheckHighlight(scene, checkHighlight, state.check, state.highlight.check);
 
       scene.visible = true;
     },
@@ -138,33 +138,12 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
       }
 
       piecesToScene(state.pieces, scene, pieceTemplates, materialTemplates);
-      updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
+      updateCheckHighlight(scene, checkHighlight, state.check, state.highlight.check);
 
-      if (state.highlight.check) {
-        highlightCheck = state.highlight.check;
-        updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
-      }
+      interactionController.setAllowedMoveDests(state.movable.dests, state.movable.showDests);
 
-      if ('turnColor' in config) {
-        currentTurnColor = config.turnColor;
-        updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
-      }
-
-      if ('check' in config) {
-        currentCheck = config.check;
-        updateCheckHighlight(scene, checkHighlight, highlightCheck ? currentCheck : false, currentTurnColor);
-      }
-
-      if ('movable' in config) {
-        allowedMoveDests = config.movable?.dests;
-        showDests = config.movable?.showDests ?? true;
-        currentAfterMoveHandler = config.movable?.events?.after;
-        interactionController.setAllowedMoveDests(allowedMoveDests, showDests);
-      }
-
-      if ('events' in config) {
-        currentMoveHandler = config.events?.move;
-      }
+      currentAfterMoveHandler = state.movable?.events?.after;
+      currentMoveHandler = state.events.move;
 
       if ('viewOnly' in config) {
         isViewOnly = !!config.viewOnly;

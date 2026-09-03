@@ -1,4 +1,7 @@
+import { type Key } from '@lichess-org/chessground/types';
 import * as THREE from 'three';
+
+import { keyToCoordinates } from './interaction.js';
 
 type ChessColor = 'white' | 'black';
 
@@ -15,30 +18,16 @@ function getCheckedColor(check: ChessColor | boolean | undefined, turnColor: Che
 export function updateCheckHighlight(
   scene: THREE.Scene,
   marker: THREE.Mesh,
-  check: ChessColor | boolean | undefined,
-  turnColor: ChessColor | undefined,
+  square: Key | undefined,
+  highlightCheck: boolean,
 ) {
-  const checkedColor = getCheckedColor(check, turnColor);
-  if (!checkedColor) {
+  const checkedSquare = square ? keyToCoordinates(square) : undefined;
+
+  if (checkedSquare && highlightCheck) {
+    marker.position.x = checkedSquare.x;
+    marker.position.z = checkedSquare.z;
+    marker.visible = true;
+  } else {
     marker.visible = false;
-    return;
   }
-
-  const kingName = checkedColor === 'white' ? 'K' : 'k';
-  let checkedKing: THREE.Mesh | undefined;
-  scene.traverse(obj => {
-    if (checkedKing || !(obj instanceof THREE.Mesh) || obj.name !== kingName) {
-      return;
-    }
-    checkedKing = obj;
-  });
-
-  if (!checkedKing) {
-    marker.visible = false;
-    return;
-  }
-
-  marker.position.x = checkedKing.position.x;
-  marker.position.z = checkedKing.position.z;
-  marker.visible = true;
 }
