@@ -18,8 +18,10 @@ import { createControls, getWhiteAzimuthAngle, setControlsOrientation } from './
 import { registerSceneRenderStep } from './systems/renderScheduler.js';
 import { handleResize } from './systems/resize.js';
 
-const SCENE_ASSET_URL = new URL('./public/scene.glb', import.meta.url).href; // Chess3D
-// const SCENE_ASSET_URL = 'http://localhost:9663/assets/scene.glb'; // Lila
+const SCENE_ASSET_URL =
+  window.location.port === '9663'
+    ? new URL('/assets/scene.glb', window.location.origin).href   // use with lila development env
+    : new URL('./public/scene.glb', import.meta.url).href;        // use in chess3D
 
 type ChessColor = 'white' | 'black';
 type ChessKey = string;
@@ -96,7 +98,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
   currentAfterMoveHandler = config.movable?.events?.after;
   setupMoveAttemptAdapter(interactionController, () => allowedMoveDests, notifyMove);
 
-  function setAllowInteractionForColors(config: Partial<ChessSceneConfig>) {
+  function setAllowInteractionForColors(config: Pick<State, 'turnColor' | 'movable'>) {
     applyInteractionPolicy(interactionController, {
       isViewOnly,
       turnColor: config.turnColor,
@@ -104,7 +106,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
     });
   }
 
-  setAllowInteractionForColors(config);
+  setAllowInteractionForColors(state);
 
   // Load scene and templates (pieces and materials)
   void createPieceTemplates(scene, SCENE_ASSET_URL).then(
@@ -139,18 +141,12 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
       }
       updateCheckHighlight(checkHighlight, state.check, state.highlight.check);
 
+      allowedMoveDests = state.movable.dests;
+      showDests = state.movable.showDests;
       interactionController.setAllowedMoveDests(state.movable.dests, state.movable.showDests);
+      currentMoveHandler = state.events?.move;
+      currentAfterMoveHandler = state.movable?.events?.after;
 
-      if ('movable' in config) {
-        allowedMoveDests = config.movable?.dests;
-        showDests = config.movable?.showDests ?? true;
-        currentAfterMoveHandler = config.movable?.events?.after;
-        interactionController.setAllowedMoveDests(allowedMoveDests, showDests);
-      }
-
-      if ('events' in config) {
-        currentMoveHandler = config.events?.move;
-      }
       if ('viewOnly' in config) {
         isViewOnly = !!config.viewOnly;
       }
@@ -159,7 +155,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
         setOrientation(config.orientation);
       }
 
-      setAllowInteractionForColors(config);
+      setAllowInteractionForColors(state);
     },
 
     move(from, to) {
