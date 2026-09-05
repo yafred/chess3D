@@ -1,22 +1,21 @@
+import { type Key } from '@lichess-org/chessground/types';
 import * as THREE from 'three';
 
 import { createMoveDestinationHighlightMarker } from '../objects/createMarkers.js';
 
 const pieceCodes = new Set(['K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 'r', 'b', 'n', 'p']);
 
-type ChessKey = string;
-
 function getSquareCoordinate(value: number): number {
   return Math.round(value + 3.5) - 3.5;
 }
 
-function coordinatesToSquare(x: number, z: number): string {
+function coordinatesToSquare(x: number, z: number): Key {
   const fileIndex = Math.round(x + 3.5);
   const rank = Math.round(4.5 - z);
-  return String.fromCharCode('a'.charCodeAt(0) + fileIndex) + rank;
+  return (String.fromCharCode('a'.charCodeAt(0) + fileIndex) + rank) as Key;
 }
 
-function parseSquare(square: string): { x: number; z: number } | null {
+function parseSquare(square: Key): { x: number; z: number } | null {
   const normalized = square.trim().toLowerCase();
   if (!/^[a-h][1-8]$/.test(normalized)) {
     return null;
@@ -59,8 +58,8 @@ export function updateMoveDestinationHighlights(
   scene: THREE.Scene,
   highlightGroup: THREE.Group,
   selectedPiece: THREE.Mesh | null,
-  allowedMoveDests?: Map<ChessKey, readonly ChessKey[]>,
-  fromSquareOverride?: ChessKey,
+  allowedMoveDests?: Map<Key, readonly Key[]>,
+  fromSquareOverride?: Key,
 ) {
   clearMoveDestinationHighlights(highlightGroup);
   if (!selectedPiece) {

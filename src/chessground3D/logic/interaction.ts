@@ -34,7 +34,7 @@ export type PieceInteractionController = {
   moveProgrammatically: (fromX: number, fromZ: number, toX: number, toZ: number) => boolean;
   moveProgrammaticallyBySquare: (from: string, to: string) => boolean;
   setLastMoveSquares: (squares?: readonly Key[]) => void;
-  setAllowedMoveDests: (dests?: Map<string, readonly string[]>, showDests?: boolean) => void;
+  setAllowedMoveDests: (dests?: Map<Key, readonly Key[]>, showDests?: boolean) => void;
   setMoveAttemptCallback: (callback: (uci: string) => boolean) => void; // Set callback for validating user moves
   setMoveCallback: (callback: (from: string, to: string) => void) => void; // Set callback after a successful move
   setAllowWhiteInteraction: (allow: boolean) => void;
@@ -109,7 +109,7 @@ export function setupPieceInteraction({
   let allowWhiteInteraction = initialAllowWhiteInteraction;
   let allowBlackInteraction = initialAllowBlackInteraction;
   let interactionEnabled = true;
-  let allowedMoveDests: Map<string, readonly string[]> | undefined;
+  let allowedMoveDests: Map<Key, readonly Key[]> | undefined;
   let showDests = true;
 
   function getPieceMeshFromObject(object: THREE.Object3D | null): THREE.Mesh | null {
@@ -187,17 +187,17 @@ export function setupPieceInteraction({
     return coordinatesToSquare(fromX, fromZ) + coordinatesToSquare(toX, toZ);
   }
 
-  function coordinatesToSquare(x: number, z: number): string {
+  function coordinatesToSquare(x: number, z: number): Key {
     const fileIndex = Math.round(x + 3.5);
     const rank = Math.round(4.5 - z);
-    return String.fromCharCode('a'.charCodeAt(0) + fileIndex) + rank;
+    return (String.fromCharCode('a'.charCodeAt(0) + fileIndex) + rank) as Key;
   }
 
   function clearSelectableMoveHighlights() {
     clearMoveDestinationHighlights(selectableMoveHighlights);
   }
 
-  function showSelectableMoveHighlights(piece: THREE.Mesh, fromSquareOverride?: string) {
+  function showSelectableMoveHighlights(piece: THREE.Mesh, fromSquareOverride?: Key) {
     updateMoveDestinationHighlights(
       scene,
       selectableMoveHighlights,
@@ -340,7 +340,7 @@ export function setupPieceInteraction({
     onMove = callback;
   }
 
-  function setAllowedMoveDests(dests?: Map<string, readonly string[]>, nextShowDests = true) {
+  function setAllowedMoveDests(dests?: Map<Key, readonly Key[]>, nextShowDests = true) {
     allowedMoveDests = dests;
     showDests = nextShowDests;
     if (selectedPiece) {

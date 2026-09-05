@@ -1,5 +1,5 @@
 import { type State } from '@lichess-org/chessground/state';
-import { type Color } from '@lichess-org/chessground/types';
+import { type Color, type Key } from '@lichess-org/chessground/types';
 import type * as THREE from 'three';
 
 import { updateCheckHighlight } from './logic/checkHighlight.js';
@@ -23,11 +23,9 @@ const SCENE_ASSET_URL =
     ? new URL('/assets/scene.glb', window.location.origin).href // use with lila development env
     : new URL('./public/scene.glb', import.meta.url).href; // use in chess3D
 
-type ChessKey = string;
-
 export interface ChessScene {
   set(state: State, hasFen?: boolean): void;
-  move(from: ChessKey, to: ChessKey): void;
+  move(from: Key, to: Key): void;
   getFen(): string;
   destroy(): void;
 }
