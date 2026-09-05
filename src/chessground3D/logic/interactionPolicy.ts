@@ -1,4 +1,4 @@
-type ChessColor = 'white' | 'black';
+import { type Color } from '@lichess-org/chessground/types';
 
 type InteractionPermissionController = {
   setInteractionEnabled: (enabled: boolean) => void;
@@ -8,8 +8,8 @@ type InteractionPermissionController = {
 
 type InteractionPolicyConfig = {
   isViewOnly: boolean;
-  turnColor?: ChessColor;
-  movableColor?: ChessColor | 'both';
+  turnColor?: Color;
+  movableColor?: Color | 'both';
 };
 
 export function applyInteractionPolicy(

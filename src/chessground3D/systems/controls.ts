@@ -1,7 +1,6 @@
+import { type Color } from '@lichess-org/chessground/types';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-
-type ChessColor = 'white' | 'black';
 
 function setLockedAzimuth(controls: OrbitControls, azimuth: number) {
   controls.minAzimuthAngle = azimuth;
@@ -23,7 +22,7 @@ export function getWhiteAzimuthAngle(controls: OrbitControls): number {
 export function setControlsOrientation(
   camera: THREE.PerspectiveCamera | THREE.OrthographicCamera,
   controls: OrbitControls,
-  orientation: ChessColor,
+  orientation: Color,
   whiteAzimuthAngle: number,
 ) {
   const azimuth = orientation === 'white' ? whiteAzimuthAngle : whiteAzimuthAngle + Math.PI;

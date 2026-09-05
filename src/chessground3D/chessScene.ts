@@ -1,4 +1,5 @@
 import { type State } from '@lichess-org/chessground/state';
+import { type Color } from '@lichess-org/chessground/types';
 import type * as THREE from 'three';
 
 import { updateCheckHighlight } from './logic/checkHighlight.js';
@@ -22,7 +23,6 @@ const SCENE_ASSET_URL =
     ? new URL('/assets/scene.glb', window.location.origin).href // use with lila development env
     : new URL('./public/scene.glb', import.meta.url).href; // use in chess3D
 
-type ChessColor = 'white' | 'black';
 type ChessKey = string;
 
 export interface ChessScene {
@@ -50,11 +50,11 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
   let materialTemplates = new Map<string, THREE.Material>();
   let pieceTemplates = new Map<string, THREE.Mesh>();
   let isDestroyed = false;
-  let currentOrientation: ChessColor | undefined;
+  let currentOrientation: Color | undefined;
   let isViewOnly = !!state.viewOnly;
 
   const whiteAzimuthAngle = getWhiteAzimuthAngle(controls);
-  function setOrientation(orientation: ChessColor | undefined) {
+  function setOrientation(orientation: Color | undefined) {
     if (!orientation || orientation === currentOrientation) {
       return;
     }
