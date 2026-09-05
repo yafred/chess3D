@@ -25,7 +25,7 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
 
     set(config) {
       configure(state, config);
-      scene.set(state);
+      scene.set(state, 'fen' in config);
     },
 
     getFen() {

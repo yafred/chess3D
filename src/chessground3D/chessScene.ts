@@ -26,7 +26,7 @@ type ChessColor = 'white' | 'black';
 type ChessKey = string;
 
 export interface ChessScene {
-  set(state: State): void;
+  set(state: State, hasFen?: boolean): void;
   move(from: ChessKey, to: ChessKey): void;
   getFen(): string;
   destroy(): void;
@@ -126,9 +126,11 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
 
   // API implementation
   return {
-    set(state) {
+    set(state, hasFen = true) {
       interactionController.setLastMoveSquares(state.highlight.lastMove ? state.lastMove : undefined);
-      piecesToScene(state.pieces, scene, pieceTemplates, materialTemplates);
+      if (hasFen) {
+        piecesToScene(state.pieces, scene, pieceTemplates, materialTemplates);
+      }
       updateCheckHighlight(checkHighlight, state.check, state.highlight.check);
 
       allowedMoveDests = state.movable.dests;
