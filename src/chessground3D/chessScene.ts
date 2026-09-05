@@ -90,7 +90,6 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
     currentAfterMoveHandler?.(from as any, to as any, { premove: false });
   }
 
-  interactionController.setAllowedMoveDests(allowedMoveDests, showDests);
   setupMoveAttemptAdapter(interactionController, () => allowedMoveDests, notifyMove);
 
   function setAllowInteractionForColors(state: Pick<State, 'turnColor' | 'movable'>) {
@@ -101,7 +100,23 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
     });
   }
 
-  setAllowInteractionForColors(state);
+  function applyState(nextState: State, hasFen = true) {
+    interactionController.setLastMoveSquares(nextState.highlight.lastMove ? nextState.lastMove : undefined);
+    if (hasFen) {
+      piecesToScene(nextState.pieces, scene, pieceTemplates, materialTemplates);
+    }
+    updateCheckHighlight(checkHighlight, nextState.check, nextState.highlight.check);
+
+    allowedMoveDests = nextState.movable.dests;
+    showDests = nextState.movable.showDests;
+    interactionController.setAllowedMoveDests(allowedMoveDests, showDests);
+    currentMoveHandler = nextState.events?.move;
+    currentAfterMoveHandler = nextState.movable?.events?.after;
+
+    isViewOnly = !!nextState.viewOnly;
+    setOrientation(nextState.orientation);
+    setAllowInteractionForColors(nextState);
+  }
 
   // Load scene and templates (pieces and materials)
   void createPieceTemplates(scene, SCENE_ASSET_URL).then(
@@ -109,9 +124,7 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
       pieceTemplates = loadedPieces;
       materialTemplates = loadedMaterials;
 
-      piecesToScene(state.pieces, scene, pieceTemplates, materialTemplates);
-      interactionController.setLastMoveSquares(state.highlight.lastMove ? state.lastMove : undefined);
-      updateCheckHighlight(checkHighlight, state.check, state.highlight.check);
+      applyState(state);
 
       scene.visible = true;
     },
@@ -127,22 +140,7 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
   // API implementation
   return {
     set(state, hasFen = true) {
-      interactionController.setLastMoveSquares(state.highlight.lastMove ? state.lastMove : undefined);
-      if (hasFen) {
-        piecesToScene(state.pieces, scene, pieceTemplates, materialTemplates);
-      }
-      updateCheckHighlight(checkHighlight, state.check, state.highlight.check);
-
-      allowedMoveDests = state.movable.dests;
-      showDests = state.movable.showDests;
-      interactionController.setAllowedMoveDests(state.movable.dests, state.movable.showDests);
-      currentMoveHandler = state.events?.move;
-      currentAfterMoveHandler = state.movable?.events?.after;
-
-      isViewOnly = !!state.viewOnly;
-      setOrientation(state.orientation);
-
-      setAllowInteractionForColors(state);
+      applyState(state, hasFen);
     },
 
     move(from, to) {
