@@ -49,7 +49,6 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
   let pieceTemplates = new Map<string, THREE.Mesh>();
   let isDestroyed = false;
   let currentOrientation: Color | undefined;
-  let isViewOnly = !!state.viewOnly;
 
   const whiteAzimuthAngle = getWhiteAzimuthAngle(controls);
   function setOrientation(orientation: Color | undefined) {
@@ -76,23 +75,16 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
     hoverController,
   });
 
-  let allowedMoveDests = state.movable.dests;
-  let showDests = state.movable.showDests;
-  type MoveEventCallback = NonNullable<State['events']['move']>;
-  type MoveAfterCallback = NonNullable<State['movable']['events']['after']>;
-  let currentMoveHandler: MoveEventCallback | undefined = state.events?.move;
-  let currentAfterMoveHandler: MoveAfterCallback | undefined = state.movable?.events?.after;
-
   function notifyMove(from: string, to: string) {
-    currentMoveHandler?.(from as any, to as any);
-    currentAfterMoveHandler?.(from as any, to as any, { premove: false });
+    state.events?.move?.(from as any, to as any);
+    state.movable?.events?.after?.(from as any, to as any, { premove: false });
   }
 
-  setupMoveAttemptAdapter(interactionController, () => allowedMoveDests, notifyMove);
+  setupMoveAttemptAdapter(interactionController, () => state.movable.dests, notifyMove);
 
-  function setAllowInteractionForColors(state: Pick<State, 'turnColor' | 'movable'>) {
+  function setAllowInteractionForColors(state: State) {
     applyInteractionPolicy(interactionController, {
-      isViewOnly,
+      isViewOnly: state.viewOnly,
       turnColor: state.turnColor,
       movableColor: state.movable?.color,
     });
@@ -105,13 +97,8 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
     }
     updateCheckHighlight(checkHighlight, nextState.check, nextState.highlight.check);
 
-    allowedMoveDests = nextState.movable.dests;
-    showDests = nextState.movable.showDests;
-    interactionController.setAllowedMoveDests(allowedMoveDests, showDests);
-    currentMoveHandler = nextState.events?.move;
-    currentAfterMoveHandler = nextState.movable?.events?.after;
+    interactionController.setAllowedMoveDests(nextState.movable.dests, nextState.movable.showDests);
 
-    isViewOnly = !!nextState.viewOnly;
     setOrientation(nextState.orientation);
     setAllowInteractionForColors(nextState);
   }
