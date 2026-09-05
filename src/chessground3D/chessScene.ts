@@ -1,4 +1,3 @@
-import { type Config } from '@lichess-org/chessground/config';
 import { type State } from '@lichess-org/chessground/state';
 import type * as THREE from 'three';
 
@@ -20,22 +19,20 @@ import { handleResize } from './systems/resize.js';
 
 const SCENE_ASSET_URL =
   window.location.port === '9663'
-    ? new URL('/assets/scene.glb', window.location.origin).href   // use with lila development env
-    : new URL('./public/scene.glb', import.meta.url).href;        // use in chess3D
+    ? new URL('/assets/scene.glb', window.location.origin).href // use with lila development env
+    : new URL('./public/scene.glb', import.meta.url).href; // use in chess3D
 
 type ChessColor = 'white' | 'black';
 type ChessKey = string;
 
-export type ChessSceneConfig = Config;
-
 export interface ChessScene {
-  set(config: Partial<ChessSceneConfig>, state: State): void;
+  set(state: State): void;
   move(from: ChessKey, to: ChessKey): void;
   getFen(): string;
   destroy(): void;
 }
 
-export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfig, state: State): ChessScene {
+export function createChessScene(sceneRoot: HTMLElement, state: State): ChessScene {
   const scene = createScene();
   const camera = createCamera(sceneRoot);
   const renderer = createRenderer(sceneRoot);
@@ -54,7 +51,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
   let pieceTemplates = new Map<string, THREE.Mesh>();
   let isDestroyed = false;
   let currentOrientation: ChessColor | undefined;
-  let isViewOnly = !!config.viewOnly;
+  let isViewOnly = !!state.viewOnly;
 
   const whiteAzimuthAngle = getWhiteAzimuthAngle(controls);
   function setOrientation(orientation: ChessColor | undefined) {
@@ -66,7 +63,7 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
     currentOrientation = orientation;
   }
 
-  setOrientation(config.orientation);
+  setOrientation(state.orientation);
 
   // Set up piece hover and interaction
   const hoverController = createPieceHoverController(scene, camera, renderer.domElement);
@@ -81,12 +78,12 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
     hoverController,
   });
 
-  let allowedMoveDests = config.movable?.dests;
-  let showDests = config.movable?.showDests ?? true;
-  type MoveEventCallback = NonNullable<NonNullable<Config['events']>['move']>;
-  type MoveAfterCallback = NonNullable<NonNullable<NonNullable<Config['movable']>['events']>['after']>;
-  let currentMoveHandler: MoveEventCallback | undefined = config.events?.move;
-  let currentAfterMoveHandler: MoveAfterCallback | undefined = config.movable?.events?.after;
+  let allowedMoveDests = state.movable.dests;
+  let showDests = state.movable.showDests;
+  type MoveEventCallback = NonNullable<State['events']['move']>;
+  type MoveAfterCallback = NonNullable<State['movable']['events']['after']>;
+  let currentMoveHandler: MoveEventCallback | undefined = state.events?.move;
+  let currentAfterMoveHandler: MoveAfterCallback | undefined = state.movable?.events?.after;
 
   function notifyMove(from: string, to: string) {
     currentMoveHandler?.(from as any, to as any);
@@ -94,15 +91,13 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
   }
 
   interactionController.setAllowedMoveDests(allowedMoveDests, showDests);
-  currentMoveHandler = config.events?.move;
-  currentAfterMoveHandler = config.movable?.events?.after;
   setupMoveAttemptAdapter(interactionController, () => allowedMoveDests, notifyMove);
 
-  function setAllowInteractionForColors(config: Pick<State, 'turnColor' | 'movable'>) {
+  function setAllowInteractionForColors(state: Pick<State, 'turnColor' | 'movable'>) {
     applyInteractionPolicy(interactionController, {
       isViewOnly,
-      turnColor: config.turnColor,
-      movableColor: config.movable?.color,
+      turnColor: state.turnColor,
+      movableColor: state.movable?.color,
     });
   }
 
@@ -131,14 +126,9 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
 
   // API implementation
   return {
-    set(config, state) {
-      if (state.highlight.lastMove) {
-        interactionController.setLastMoveSquares(state.lastMove);
-      }
-
-      if ('fen' in config) {
-        piecesToScene(state.pieces, scene, pieceTemplates, materialTemplates);
-      }
+    set(state) {
+      interactionController.setLastMoveSquares(state.highlight.lastMove ? state.lastMove : undefined);
+      piecesToScene(state.pieces, scene, pieceTemplates, materialTemplates);
       updateCheckHighlight(checkHighlight, state.check, state.highlight.check);
 
       allowedMoveDests = state.movable.dests;
@@ -147,13 +137,8 @@ export function createChessScene(sceneRoot: HTMLElement, config: ChessSceneConfi
       currentMoveHandler = state.events?.move;
       currentAfterMoveHandler = state.movable?.events?.after;
 
-      if ('viewOnly' in config) {
-        isViewOnly = !!config.viewOnly;
-      }
-
-      if ('orientation' in config && config.orientation && config.orientation !== currentOrientation) {
-        setOrientation(config.orientation);
-      }
+      isViewOnly = !!state.viewOnly;
+      setOrientation(state.orientation);
 
       setAllowInteractionForColors(state);
     },
