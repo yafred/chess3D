@@ -23,7 +23,7 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
   const container = document.createElement('cg-container');
   element.appendChild(container);
   const scene = createChessScene(container, state);
-  state.events.insert?.({board: container, container, wrap: element});
+  state.events.insert?.({ board: container, container, wrap: element });
 
   return {
     state: state,
