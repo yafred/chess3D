@@ -43,7 +43,7 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
   scene.add(a1Marker);
   scene.add(h8Marker);
   scene.add(checkHighlight);
-  handleResize(sceneRoot, camera, renderer);
+  const stopHandlingResize = handleResize(sceneRoot, camera, renderer);
 
   let materialTemplates = new Map<string, THREE.Material>();
   let pieceTemplates = new Map<string, THREE.Mesh>();
@@ -143,6 +143,7 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
       isDestroyed = true;
 
       unregisterRenderStep();
+      stopHandlingResize();
       renderer.dispose();
       controls.dispose();
       sceneRoot.removeEventListener('pointermove', hoverController.updateFromPointerEvent);
