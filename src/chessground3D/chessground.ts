@@ -18,7 +18,12 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
   configure(maybeState, config || {});
   const state = maybeState as State;
 
-  const scene = createChessScene(element, state);
+  element.innerHTML = '';
+  element.classList.add('cg-wrap');
+  const container = document.createElement('cg-container');
+  element.appendChild(container);
+  const scene = createChessScene(container, state);
+  state.events.insert?.({board: container, container, wrap: element});
 
   return {
     state: state,
