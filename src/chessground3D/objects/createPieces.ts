@@ -1,5 +1,5 @@
-import { key2pos } from '@lichess-org/chessground/util';
 import { type Pieces } from '@lichess-org/chessground/types';
+import { key2pos } from '@lichess-org/chessground/util';
 import * as THREE from 'three';
 
 const pieceRoleMap: Record<string, string> = {
@@ -19,46 +19,6 @@ const pieceCodeMap: Record<string, string> = {
   queen: 'Q',
   king: 'K',
 };
-
-const pieceCodes = new Set(['K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 'r', 'b', 'n', 'p']);
-
-export function sceneToFen(scene: THREE.Scene): string {
-  const board: (string | undefined)[][] = Array.from({ length: 8 }, () => Array.from({ length: 8 }));
-
-  scene.traverse(obj => {
-    if (!(obj instanceof THREE.Mesh) || !pieceCodes.has(obj.name) || !obj.userData?.isClone) {
-      return;
-    }
-
-    const c = Math.round(obj.position.x + 3.5);
-    const r = Math.round(obj.position.z + 3.5);
-    if (r >= 0 && r < 8 && c >= 0 && c < 8) {
-      board[r][c] = obj.name;
-    }
-  });
-
-  return board
-    .map(row => {
-      let fenRow = '';
-      let emptyCount = 0;
-      for (const piece of row) {
-        if (piece) {
-          if (emptyCount > 0) {
-            fenRow += emptyCount;
-            emptyCount = 0;
-          }
-          fenRow += piece;
-        } else {
-          emptyCount++;
-        }
-      }
-      if (emptyCount > 0) {
-        fenRow += emptyCount;
-      }
-      return fenRow;
-    })
-    .join('/');
-}
 
 export function piecesToScene(
   pieces: Pieces,
@@ -91,7 +51,7 @@ export function piecesToScene(
     const pos = key2pos(key);
     const clone = pieceMesh.clone();
     clone.userData.isClone = true;
-    clone.position.set(pos[0] - 3.5, 0, (7 - pos[1]) - 3.5);
+    clone.position.set(pos[0] - 3.5, 0, 7 - pos[1] - 3.5);
 
     const code = pieceCodeMap[piece.role] ?? 'P';
     clone.name = piece.color === 'white' ? code : code.toLowerCase();

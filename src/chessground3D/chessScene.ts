@@ -1,14 +1,15 @@
+import { write as fenWrite } from '@lichess-org/chessground/fen';
 import { type State } from '@lichess-org/chessground/state';
 import { type Color, type Key } from '@lichess-org/chessground/types';
 import type * as THREE from 'three';
 
 import { updateCheckHighlight } from './logic/checkHighlight.js';
-import { piecesToScene, sceneToFen } from './logic/fen.js';
 import { createPieceHoverController } from './logic/hover.js';
 import { setupPieceInteraction } from './logic/interaction.js';
 import { applyInteractionPolicy } from './logic/interactionPolicy.js';
 import { setupMoveAttemptAdapter } from './logic/moveAttemptAdapter.js';
 import { createA1Marker, createCheckHighlightMarker, createH8Marker } from './objects/createMarkers.js';
+import { piecesToScene } from './objects/createPieces.js';
 import { createPieceTemplates } from './objects/createPieceTemplates.js';
 import { createCamera } from './scene/createCamera.js';
 import { createLights } from './scene/createLights.js';
@@ -133,7 +134,7 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
     },
 
     getFen() {
-      return sceneToFen(scene);
+      return fenWrite(state.pieces);
     },
 
     destroy() {
