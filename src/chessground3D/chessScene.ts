@@ -90,17 +90,17 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
     });
   }
 
-  function applyState(nextState: State, hasFen = true) {
-    interactionController.setLastMoveSquares(nextState.highlight.lastMove ? nextState.lastMove : undefined);
+  function applyState(s: State, hasFen = true) {
+    interactionController.setLastMoveSquares(s.highlight.lastMove ? s.lastMove : undefined);
     if (hasFen) {
-      piecesToScene(nextState.pieces, scene, pieceTemplates, materialTemplates);
+      piecesToScene(s.pieces, scene, pieceTemplates, materialTemplates);
     }
-    updateCheckHighlight(checkHighlight, nextState.check, nextState.highlight.check);
+    updateCheckHighlight(checkHighlight, s.check, s.highlight.check);
 
-    interactionController.setAllowedMoveDests(nextState.movable.dests, nextState.movable.showDests);
+    interactionController.setAllowedMoveDests(s.movable.dests, s.movable.showDests);
 
-    setOrientation(nextState.orientation);
-    setAllowInteractionForColors(nextState);
+    setOrientation(s.orientation);
+    setAllowInteractionForColors(s);
   }
 
   // Load scene and templates (pieces and materials)
