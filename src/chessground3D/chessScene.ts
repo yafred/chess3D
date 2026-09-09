@@ -27,6 +27,7 @@ const SCENE_ASSET_URL =
 export interface ChessScene {
   set(state: State, hasFen?: boolean): void;
   move(from: Key, to: Key): void;
+  selectSquare(key: Key | null): void;
   getFen(): string;
   destroy(): void;
 }
@@ -131,6 +132,10 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
 
     move(from, to) {
       interactionController.moveProgrammaticallyBySquare(from, to);
+    },
+
+    selectSquare(key) {
+      interactionController.selectSquare(key);
     },
 
     getFen() {

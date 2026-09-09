@@ -33,6 +33,7 @@ type SetupPieceInteractionParams = {
 export type PieceInteractionController = {
   moveProgrammatically: (fromX: number, fromZ: number, toX: number, toZ: number) => boolean;
   moveProgrammaticallyBySquare: (from: string, to: string) => boolean;
+  selectSquare: (key: Key | null) => void;
   setLastMoveSquares: (squares?: readonly Key[]) => void;
   setAllowedMoveDests: (dests?: Map<Key, readonly Key[]>, showDests?: boolean) => void;
   setMoveAttemptCallback: (callback: (uci: string) => boolean) => void; // Set callback for validating user moves
@@ -425,6 +426,53 @@ export function setupPieceInteraction({
     return moveProgrammatically(source.x, source.z, target.x, target.z);
   }
 
+  function selectSquare(key: Key | null) {
+    if (!key) {
+      clearSelection();
+      return;
+    }
+
+    const coords = parseSquare(key);
+    if (!coords) {
+      clearSelection();
+      return;
+    }
+
+    const targetPiece = getPieceAtSquare(coords.x, coords.z);
+
+    if (selectedPiece) {
+      if (targetPiece === selectedPiece) {
+        clearSelection();
+        return;
+      }
+
+      if (targetPiece && isOppositeColor(selectedPiece, targetPiece)) {
+        if (applyMoveOrCapture(selectedPiece, coords.x, coords.z)) {
+          clearSelection();
+          return;
+        }
+      }
+
+      if (targetPiece && canInteractWithPiece(targetPiece)) {
+        selectPiece(targetPiece);
+        return;
+      }
+
+      if (!targetPiece) {
+        if (applyMoveOrCapture(selectedPiece, coords.x, coords.z)) {
+          clearSelection();
+          return;
+        }
+      }
+
+      return;
+    }
+
+    if (targetPiece && canInteractWithPiece(targetPiece)) {
+      selectPiece(targetPiece);
+    }
+  }
+
   function handleSelectedPieceClickTarget(event: PointerEvent): boolean {
     if (!selectedPiece || event.button !== 0) {
       return false;
@@ -714,6 +762,7 @@ export function setupPieceInteraction({
   return {
     moveProgrammatically,
     moveProgrammaticallyBySquare,
+    selectSquare,
     setLastMoveSquares,
     setAllowedMoveDests,
     setMoveAttemptCallback,

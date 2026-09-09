@@ -41,7 +41,9 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
       scene.move(orig, dest);
     },
     setPieces: notImplemented('setPieces'),
-    selectSquare: notImplemented('selectSquare'),
+    selectSquare(key, _force): void {
+      scene.selectSquare(key);
+    },
     newPiece: notImplemented('newPiece'),
     cancelMove: notImplemented('cancelMove'),
     stop: notImplemented('stop'),
