@@ -1,14 +1,23 @@
-import { write as fenWrite } from '@lichess-org/chessground/fen';
+import { key2pos } from '@lichess-org/chessground/util';
 import { type Pieces } from '@lichess-org/chessground/types';
 import * as THREE from 'three';
 
-const pieceMap: Record<string, string> = {
-  P: 'Pawn',
-  N: 'Knight',
-  B: 'Bishop',
-  R: 'Rook',
-  Q: 'Queen',
-  K: 'King',
+const pieceRoleMap: Record<string, string> = {
+  pawn: 'Pawn',
+  knight: 'Knight',
+  bishop: 'Bishop',
+  rook: 'Rook',
+  queen: 'Queen',
+  king: 'King',
+};
+
+const pieceCodeMap: Record<string, string> = {
+  pawn: 'P',
+  knight: 'N',
+  bishop: 'B',
+  rook: 'R',
+  queen: 'Q',
+  king: 'K',
 };
 
 const pieceCodes = new Set(['K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 'r', 'b', 'n', 'p']);
@@ -17,7 +26,7 @@ export function sceneToFen(scene: THREE.Scene): string {
   const board: (string | undefined)[][] = Array.from({ length: 8 }, () => Array.from({ length: 8 }));
 
   scene.traverse(obj => {
-    if (!(obj instanceof THREE.Mesh) || !pieceCodes.has(obj.name) || !obj.userData?.isFenClone) {
+    if (!(obj instanceof THREE.Mesh) || !pieceCodes.has(obj.name) || !obj.userData?.isClone) {
       return;
     }
 
@@ -51,7 +60,6 @@ export function sceneToFen(scene: THREE.Scene): string {
     .join('/');
 }
 
-// TODO: Use pieces from state
 export function piecesToScene(
   pieces: Pieces,
   scene: THREE.Scene,
@@ -61,7 +69,7 @@ export function piecesToScene(
   // Remove clones previously created.
   for (let i = scene.children.length - 1; i >= 0; i--) {
     const child = scene.children[i];
-    if (child.userData?.isFenClone) {
+    if (child.userData?.isClone) {
       if (child instanceof THREE.Mesh) {
         if (Array.isArray(child.material)) {
           child.material.forEach(material => material.dispose());
@@ -73,39 +81,33 @@ export function piecesToScene(
     }
   }
 
-  // Parse FEN and add pieces to the scene (creating clones of the original meshes)
-  // TODO: use pieces directly
-  const fen = fenWrite(pieces);
-
-  const rows = fen.split(' ')[0].split('/');
-  for (let r = 0; r < 8; r++) {
-    let c = 0;
-    for (const char of rows[r]) {
-      if (char >= '1' && char <= '8') {
-        c += Number.parseInt(char, 10);
-      } else {
-        const pieceMesh = pieceTemplates.get(pieceMap[char.toUpperCase()]);
-
-        if (pieceMesh) {
-          const clone = pieceMesh.clone();
-          clone.userData.isFenClone = true;
-          clone.position.set(c - 3.5, 0, r - 3.5);
-          clone.name = `${char}`; // Name the piece for later reference (e.g., "P" for white pawn, "p" for black pawn)
-          // Reminder: X: horizontal positive to the right, Y: vertical positive up, Z: horizontal positive towards the camera
-          const materialName = char === char.toUpperCase() ? 'white piece' : 'black piece';
-          const material = materialTemplates.get(materialName);
-          if (material) {
-            clone.material = material.clone();
-          } else if (Array.isArray(clone.material)) {
-            clone.material = clone.material.map(m => m.clone());
-          } else {
-            clone.material = clone.material.clone();
-          }
-          clone.visible = true;
-          scene.add(clone);
-        }
-        c++;
-      }
+  for (const [key, piece] of pieces) {
+    const pieceName = pieceRoleMap[piece.role];
+    const pieceMesh = pieceName ? pieceTemplates.get(pieceName) : undefined;
+    if (!pieceMesh) {
+      continue;
     }
+
+    const pos = key2pos(key);
+    const clone = pieceMesh.clone();
+    clone.userData.isClone = true;
+    clone.position.set(pos[0] - 3.5, 0, (7 - pos[1]) - 3.5);
+
+    const code = pieceCodeMap[piece.role] ?? 'P';
+    clone.name = piece.color === 'white' ? code : code.toLowerCase();
+
+    // Reminder: X: horizontal positive to the right, Y: vertical positive up, Z: horizontal positive towards the camera
+    const materialName = piece.color === 'white' ? 'white piece' : 'black piece';
+    const material = materialTemplates.get(materialName);
+    if (material) {
+      clone.material = material.clone();
+    } else if (Array.isArray(clone.material)) {
+      clone.material = clone.material.map(m => m.clone());
+    } else {
+      clone.material = clone.material.clone();
+    }
+
+    clone.visible = true;
+    scene.add(clone);
   }
 }
