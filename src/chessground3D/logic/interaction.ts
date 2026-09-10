@@ -31,7 +31,6 @@ type SetupPieceInteractionParams = {
 };
 
 export type PieceInteractionController = {
-  moveProgrammatically: (fromX: number, fromZ: number, toX: number, toZ: number) => boolean;
   moveProgrammaticallyBySquare: (from: string, to: string) => boolean;
   selectSquare: (key: Key | null) => void;
   setLastMoveSquares: (squares?: readonly Key[]) => void;
@@ -389,7 +388,12 @@ export function setupPieceInteraction({
     }
   }
 
-  function moveProgrammatically(fromX: number, fromZ: number, toX: number, toZ: number): boolean {
+  function moveProgrammaticallyByCoordinates(
+    fromX: number,
+    fromZ: number,
+    toX: number,
+    toZ: number,
+  ): boolean {
     if (dragState) {
       return false;
     }
@@ -423,7 +427,7 @@ export function setupPieceInteraction({
       return false;
     }
 
-    return moveProgrammatically(source.x, source.z, target.x, target.z);
+    return moveProgrammaticallyByCoordinates(source.x, source.z, target.x, target.z);
   }
 
   function selectSquare(key: Key | null) {
@@ -760,7 +764,6 @@ export function setupPieceInteraction({
   });
 
   return {
-    moveProgrammatically,
     moveProgrammaticallyBySquare,
     selectSquare,
     setLastMoveSquares,
