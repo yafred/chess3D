@@ -26,7 +26,8 @@ export function createArrowMesh(
   const px = -uz;
   const pz = ux;
 
-  const point = (u: number, v: number) => new THREE.Vector3(origX + ux * u + px * v, ARROW_HEIGHT, origZ + uz * u + pz * v);
+  const point = (u: number, v: number) =>
+    new THREE.Vector3(origX + ux * u + px * v, ARROW_HEIGHT, origZ + uz * u + pz * v);
 
   const shaftStartLeft = point(0, SHAFT_WIDTH / 2);
   const shaftStartRight = point(0, -SHAFT_WIDTH / 2);
@@ -37,9 +38,15 @@ export function createArrowMesh(
   const tip = point(effectiveLength, 0);
 
   const vertices = [
-    shaftStartLeft, shaftStartRight, shaftEndRight,
-    shaftStartLeft, shaftEndRight, shaftEndLeft,
-    headBaseLeft, headBaseRight, tip,
+    shaftStartLeft,
+    shaftStartRight,
+    shaftEndRight,
+    shaftStartLeft,
+    shaftEndRight,
+    shaftEndLeft,
+    headBaseLeft,
+    headBaseRight,
+    tip,
   ];
 
   const positions = new Float32Array(vertices.length * 3);
