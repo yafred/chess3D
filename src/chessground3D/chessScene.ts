@@ -1,8 +1,10 @@
+import { type DrawShape } from '@lichess-org/chessground/draw';
 import { write as fenWrite } from '@lichess-org/chessground/fen';
 import { type State } from '@lichess-org/chessground/state';
 import { type Color, type Key } from '@lichess-org/chessground/types';
-import type * as THREE from 'three';
+import * as THREE from 'three';
 
+import { updateAutoShapes } from './logic/autoShapes.js';
 import { updateCheckHighlight } from './logic/checkHighlight.js';
 import { createPieceHoverController } from './logic/hover.js';
 import { setupPieceInteraction } from './logic/interaction.js';
@@ -28,6 +30,7 @@ export interface ChessScene {
   set(state: State, hasFen?: boolean): void;
   move(from: Key, to: Key): void;
   selectSquare(key: Key | null): void;
+  setAutoShapes(shapes: DrawShape[]): void;
   getFen(): string;
   destroy(): void;
 }
@@ -42,9 +45,11 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
   const a1Marker = createA1Marker();
   const h8Marker = createH8Marker();
   const checkHighlight = createCheckHighlightMarker();
+  const autoShapesGroup = new THREE.Group();
   scene.add(a1Marker);
   scene.add(h8Marker);
   scene.add(checkHighlight);
+  scene.add(autoShapesGroup);
   const stopHandlingResize = handleResize(sceneRoot, camera, renderer);
 
   let materialTemplates = new Map<string, THREE.Material>();
@@ -136,6 +141,10 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
 
     selectSquare(key) {
       interactionController.selectSquare(key);
+    },
+
+    setAutoShapes(shapes) {
+      updateAutoShapes(autoShapesGroup, shapes, state.drawable.brushes);
     },
 
     getFen() {
