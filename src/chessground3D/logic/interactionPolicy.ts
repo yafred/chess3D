@@ -4,12 +4,16 @@ type InteractionPermissionController = {
   setInteractionEnabled: (enabled: boolean) => void;
   setAllowWhiteInteraction: (allow: boolean) => void;
   setAllowBlackInteraction: (allow: boolean) => void;
+  setDraggable: (enabled: boolean) => void;
+  setSelectable: (enabled: boolean) => void;
 };
 
 type InteractionPolicyConfig = {
   isViewOnly: boolean;
   turnColor?: Color;
   movableColor?: Color | 'both';
+  draggable: boolean;
+  selectable: boolean;
 };
 
 export function applyInteractionPolicy(
@@ -17,6 +21,8 @@ export function applyInteractionPolicy(
   config: InteractionPolicyConfig,
 ) {
   interactionController.setInteractionEnabled(!config.isViewOnly);
+  interactionController.setDraggable(config.draggable && !config.isViewOnly);
+  interactionController.setSelectable(config.selectable && !config.isViewOnly);
   if (config.isViewOnly) {
     interactionController.setAllowWhiteInteraction(false);
     interactionController.setAllowBlackInteraction(false);

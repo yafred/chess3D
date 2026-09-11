@@ -19,6 +19,12 @@ type DragState = {
   hasMoved: boolean;
 };
 
+type ClickState = {
+  pointerId: number;
+  startClientX: number;
+  startClientY: number;
+};
+
 type SetupPieceInteractionParams = {
   scene: THREE.Scene;
   camera: THREE.Camera;
@@ -39,6 +45,8 @@ export type PieceInteractionController = {
   setMoveCallback: (callback: (from: string, to: string) => void) => void; // Set callback after a successful move
   setAllowWhiteInteraction: (allow: boolean) => void;
   setAllowBlackInteraction: (allow: boolean) => void;
+  setDraggable: (enabled: boolean) => void;
+  setSelectable: (enabled: boolean) => void;
   setInteractionEnabled: (enabled: boolean) => void;
 };
 
@@ -101,6 +109,7 @@ export function setupPieceInteraction({
   scene.add(selectableMoveHighlights);
 
   let dragState: DragState | null = null;
+  let clickState: ClickState | null = null;
   let selectedPiece: THREE.Mesh | null = null;
   let activeMouseButton: number | null = null;
   let hoverDisabledForOrbit = false;
@@ -108,6 +117,8 @@ export function setupPieceInteraction({
   let onMove: ((from: string, to: string) => void) | undefined = undefined;
   let allowWhiteInteraction = initialAllowWhiteInteraction;
   let allowBlackInteraction = initialAllowBlackInteraction;
+  let draggable = true;
+  let selectable = true;
   let interactionEnabled = true;
   let allowedMoveDests: Map<Key, readonly Key[]> | undefined;
   let showDests = true;
@@ -388,6 +399,28 @@ export function setupPieceInteraction({
     }
   }
 
+  function setDraggable(enabled: boolean) {
+    draggable = enabled;
+    if (!draggable && dragState) {
+      dragState.piece.position.copy(dragState.startPosition);
+      hoverController.setDraggedPiece(null);
+      hoverController.setIgnoredPiece(null);
+      if (renderer.domElement.hasPointerCapture(dragState.pointerId)) {
+        renderer.domElement.releasePointerCapture(dragState.pointerId);
+      }
+      dragState = null;
+      controls.enabled = true;
+      hoverController.setEnabled(true);
+    }
+  }
+
+  function setSelectable(enabled: boolean) {
+    selectable = enabled;
+    if (!selectable) {
+      clearSelection();
+    }
+  }
+
   function moveProgrammaticallyByCoordinates(
     fromX: number,
     fromZ: number,
@@ -561,7 +594,7 @@ export function setupPieceInteraction({
 
       if (selectedPiece === piece) {
         clearSelection();
-      } else {
+      } else if (selectable) {
         selectPiece(piece);
       }
 
@@ -625,6 +658,17 @@ export function setupPieceInteraction({
       }
 
       if (!canInteractWithPiece(piece)) {
+        return;
+      }
+
+      if (!draggable) {
+        event.preventDefault();
+        event.stopPropagation();
+        clickState = {
+          pointerId: event.pointerId,
+          startClientX: event.clientX,
+          startClientY: event.clientY,
+        };
         return;
       }
 
@@ -717,10 +761,33 @@ export function setupPieceInteraction({
       return;
     }
 
-    handleSelectedPieceClickTarget(event);
+    if (clickState && event.pointerId === clickState.pointerId) {
+      const deltaX = event.clientX - clickState.startClientX;
+      const deltaY = event.clientY - clickState.startClientY;
+      const movedPastClickThreshold = Math.hypot(deltaX, deltaY) >= dragThresholdPx;
+      clickState = null;
+      if (movedPastClickThreshold) {
+        return;
+      }
+    }
+
+    if (selectable) {
+      if (!selectedPiece) {
+        const piece = getPieceUnderPointer(event);
+        if (piece && canInteractWithPiece(piece)) {
+          selectPiece(piece);
+        }
+      } else {
+        handleSelectedPieceClickTarget(event);
+      }
+    }
   });
 
   renderer.domElement.addEventListener('pointercancel', event => {
+    if (clickState?.pointerId === event.pointerId) {
+      clickState = null;
+    }
+
     if (!interactionEnabled) {
       return;
     }
@@ -772,6 +839,8 @@ export function setupPieceInteraction({
     setMoveCallback,
     setAllowWhiteInteraction,
     setAllowBlackInteraction,
+    setDraggable,
+    setSelectable,
     setInteractionEnabled,
   };
 }

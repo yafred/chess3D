@@ -94,6 +94,8 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
       isViewOnly: state.viewOnly,
       turnColor: state.turnColor,
       movableColor: state.movable?.color,
+      draggable: state.draggable.enabled,
+      selectable: state.selectable.enabled,
     });
   }
 
