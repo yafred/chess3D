@@ -33,6 +33,7 @@ export interface ChessScene {
   selectSquare(key: Key | null): void;
   setAutoShapes(shapes: DrawShape[]): void;
   getFen(): string;
+  getKeyAtDomPos(pos: [number, number]): Key | undefined;
   playPremove(): boolean;
   cancelPremove(): void;
   destroy(): void;
@@ -43,6 +44,10 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
   const camera = createCamera(sceneRoot);
   const renderer = createRenderer(sceneRoot);
   const controls = createControls(camera, renderer.domElement);
+  const pointerRaycaster = new THREE.Raycaster();
+  const pointerNdc = new THREE.Vector2();
+  const boardPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  const boardPoint = new THREE.Vector3();
   const lights = createLights();
   scene.add(lights);
   const a1Marker = createA1Marker();
@@ -164,6 +169,12 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
   };
   const unregisterRenderStep = registerSceneRenderStep(renderStep);
 
+  function coordinatesToSquare(x: number, z: number): Key {
+    const fileIndex = Math.round(x + 3.5);
+    const rank = Math.round(4.5 - z);
+    return (String.fromCharCode('a'.charCodeAt(0) + fileIndex) + rank) as Key;
+  }
+
   // API implementation
   return {
     set(state, hasFen = true) {
@@ -184,6 +195,35 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
 
     getFen() {
       return fenWrite(state.pieces);
+    },
+
+    getKeyAtDomPos(pos) {
+      const rect = sceneRoot.getBoundingClientRect();
+      if (!rect.width || !rect.height) {
+        return undefined;
+      }
+
+      pointerNdc.x = ((pos[0] - rect.left) / rect.width) * 2 - 1;
+      pointerNdc.y = -((pos[1] - rect.top) / rect.height) * 2 + 1;
+      pointerRaycaster.setFromCamera(pointerNdc, camera);
+      const hasBoardIntersection = pointerRaycaster.ray.intersectPlane(boardPlane, boardPoint) !== null;
+      if (!hasBoardIntersection) {
+        return undefined;
+      }
+
+      const boardX = boardPoint.x;
+      const boardZ = boardPoint.z;
+      if (Math.abs(boardX) > 4 || Math.abs(boardZ) > 4) {
+        return undefined;
+      }
+
+      const squareX = Math.round(boardX + 3.5) - 3.5;
+      const squareZ = Math.round(boardZ + 3.5) - 3.5;
+      if (Math.abs(squareX) > 4 || Math.abs(squareZ) > 4) {
+        return undefined;
+      }
+
+      return coordinatesToSquare(squareX, squareZ);
     },
 
     playPremove() {

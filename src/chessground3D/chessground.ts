@@ -72,7 +72,9 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
     },
     playPredrop: notImplemented('playPredrop', false),
     cancelPredrop: notImplemented('cancelPredrop'),
-    getKeyAtDomPos: notImplemented('getKeyAtDomPos', undefined),
+    getKeyAtDomPos(pos) {
+      return scene.getKeyAtDomPos(pos);
+    },
 
     destroy() {
       scene.destroy();
