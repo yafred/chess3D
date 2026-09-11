@@ -23,7 +23,17 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
   const container = document.createElement('cg-container');
   element.appendChild(container);
   const scene = createChessScene(container, state);
-  state.events.insert?.({ board: container, container, wrap: element });
+  const elements = { board: container, container, wrap: element };
+  state.events.insert?.(elements);
+  state.dom = {
+    redraw: () => {},
+    redrawNow: () => {},
+    unbind: () => {},
+    elements: elements,
+    bounds: Object.assign(() => element.getBoundingClientRect(), {
+      clear() {},
+    }),
+  };
 
   return {
     state: state,
