@@ -3,9 +3,9 @@ import { key2pos } from '@lichess-org/chessground/util';
 import * as THREE from 'three';
 import { type OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
+import { createPremoveHighlightMarker } from '../objects/createMarkers';
 import { type PieceHoverController } from './hover';
 import { clearMoveDestinationHighlights, updateMoveDestinationHighlights } from './moveDestinationHighlight';
-import { createPremoveHighlightMarker } from '../objects/createMarkers';
 
 const pieceCodes = new Set(['K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 'r', 'b', 'n', 'p']);
 
@@ -234,7 +234,13 @@ export function setupPieceInteraction({
     const isPremove = isPremoveCandidate(piece);
     const dests = isPremove ? premoveDests : allowedMoveDests;
     const show = isPremove ? showPremoveDests : showDests;
-    updateMoveDestinationHighlights(scene, selectableMoveHighlights, piece, show ? dests : undefined, fromSquareOverride);
+    updateMoveDestinationHighlights(
+      scene,
+      selectableMoveHighlights,
+      piece,
+      show ? dests : undefined,
+      fromSquareOverride,
+    );
   }
 
   function updatePremoveHighlight() {
@@ -328,7 +334,10 @@ export function setupPieceInteraction({
       return false;
     }
 
-    const square = coordinatesToSquare(getSquareCoordinate(piece.position.x), getSquareCoordinate(piece.position.z));
+    const square = coordinatesToSquare(
+      getSquareCoordinate(piece.position.x),
+      getSquareCoordinate(piece.position.z),
+    );
     return square === queuedPremove.orig;
   }
 
