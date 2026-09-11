@@ -5,7 +5,7 @@ import { type PieceInteractionController } from './interaction';
 export function setupMoveAttemptAdapter(
   interactionController: PieceInteractionController,
   getAllowedMoveDests: () => Map<Key, readonly Key[]> | undefined,
-  onMove?: (from: string, to: string) => void,
+  onMove?: (from: string, to: string, isPremove: boolean) => void,
 ) {
   if (onMove) {
     interactionController.setMoveCallback(onMove);

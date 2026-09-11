@@ -1,5 +1,6 @@
 import { type DrawShape } from '@lichess-org/chessground/draw';
 import { write as fenWrite } from '@lichess-org/chessground/fen';
+import { premove } from '@lichess-org/chessground/premove';
 import { type State } from '@lichess-org/chessground/state';
 import { type Color, type Key } from '@lichess-org/chessground/types';
 import * as THREE from 'three';
@@ -32,6 +33,8 @@ export interface ChessScene {
   selectSquare(key: Key | null): void;
   setAutoShapes(shapes: DrawShape[]): void;
   getFen(): string;
+  playPremove(): boolean;
+  cancelPremove(): void;
   destroy(): void;
 }
 
@@ -82,12 +85,39 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
     hoverController,
   });
 
-  function notifyMove(from: string, to: string) {
+  function notifyMove(from: string, to: string, isPremove: boolean) {
     state.events?.move?.(from as any, to as any);
-    state.movable?.events?.after?.(from as any, to as any, { premove: false });
+    state.movable?.events?.after?.(from as any, to as any, { premove: isPremove });
   }
 
   setupMoveAttemptAdapter(interactionController, () => state.movable.dests, notifyMove);
+
+  interactionController.setPremoveCallbacks({
+    onSet: (orig, dest) => {
+      state.premovable.current = [orig, dest];
+      state.premovable.events?.set?.(orig, dest);
+    },
+    onUnset: () => {
+      state.premovable.current = undefined;
+      state.premovable.events?.unset?.();
+    },
+  });
+
+  // premove destinations for every piece of the non-moving color, mirroring board.ts's `premove()` usage
+  function computePremoveDests(s: State): Map<Key, readonly Key[]> | undefined {
+    if (!s.premovable.enabled) {
+      return undefined;
+    }
+
+    const dests = new Map<Key, readonly Key[]>();
+    for (const key of s.pieces.keys()) {
+      const keyDests = s.premovable.customDests?.get(key) ?? premove(s, key);
+      if (keyDests.length > 0) {
+        dests.set(key, keyDests);
+      }
+    }
+    return dests;
+  }
 
   function setAllowInteractionForColors(state: State) {
     applyInteractionPolicy(interactionController, {
@@ -96,6 +126,7 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
       movableColor: state.movable?.color,
       draggable: state.draggable.enabled,
       selectable: state.selectable.enabled,
+      premovableEnabled: state.premovable.enabled,
     });
   }
 
@@ -106,7 +137,9 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
     }
     updateCheckHighlight(checkHighlight, s.check, s.highlight.check);
 
+    interactionController.setTurnColor(s.turnColor);
     interactionController.setAllowedMoveDests(s.movable.dests, s.movable.showDests);
+    interactionController.setPremoveDests(computePremoveDests(s), s.premovable.showDests);
 
     setOrientation(s.orientation);
     setAllowInteractionForColors(s);
@@ -151,6 +184,14 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
 
     getFen() {
       return fenWrite(state.pieces);
+    },
+
+    playPremove() {
+      return interactionController.playQueuedPremove();
+    },
+
+    cancelPremove() {
+      interactionController.cancelQueuedPremove();
     },
 
     destroy() {

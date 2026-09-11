@@ -58,3 +58,21 @@ export function createMoveDestinationHighlightMarker(isOccupied: boolean) {
   marker.renderOrder = 11;
   return marker;
 }
+
+export function createPremoveHighlightMarker(isDestination: boolean) {
+  const marker = new THREE.Mesh(
+    new THREE.PlaneGeometry(1, 1),
+    new THREE.MeshBasicMaterial({
+      color: 0xf0_7d_1e,
+      transparent: true,
+      opacity: isDestination ? 0.4 : 0.35,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+  );
+  marker.rotation.x = -Math.PI / 2;
+  marker.position.y = isDestination ? 0.008 : 0.007;
+  marker.visible = false;
+  marker.renderOrder = isDestination ? 11 : 10;
+  return marker;
+}

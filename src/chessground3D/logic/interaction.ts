@@ -1,10 +1,11 @@
-import { type Key } from '@lichess-org/chessground/types';
+import { type Color, type Key } from '@lichess-org/chessground/types';
 import { key2pos } from '@lichess-org/chessground/util';
 import * as THREE from 'three';
 import { type OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 import { type PieceHoverController } from './hover';
 import { clearMoveDestinationHighlights, updateMoveDestinationHighlights } from './moveDestinationHighlight';
+import { createPremoveHighlightMarker } from '../objects/createMarkers';
 
 const pieceCodes = new Set(['K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 'r', 'b', 'n', 'p']);
 
@@ -42,12 +43,18 @@ export type PieceInteractionController = {
   setLastMoveSquares: (squares?: readonly Key[]) => void;
   setAllowedMoveDests: (dests?: Map<Key, readonly Key[]>, showDests?: boolean) => void;
   setMoveAttemptCallback: (callback: (uci: string) => boolean) => void; // Set callback for validating user moves
-  setMoveCallback: (callback: (from: string, to: string) => void) => void; // Set callback after a successful move
+  setMoveCallback: (callback: (from: string, to: string, isPremove: boolean) => void) => void; // Set callback after a successful move
   setAllowWhiteInteraction: (allow: boolean) => void;
   setAllowBlackInteraction: (allow: boolean) => void;
   setDraggable: (enabled: boolean) => void;
   setSelectable: (enabled: boolean) => void;
   setInteractionEnabled: (enabled: boolean) => void;
+  setTurnColor: (color?: Color) => void; // color allowed to move immediately (others queue premoves)
+  setPremoveDests: (dests?: Map<Key, readonly Key[]>, showDests?: boolean) => void;
+  setPremoveCallbacks: (callbacks: { onSet?: (orig: Key, dest: Key) => void; onUnset?: () => void }) => void;
+  getQueuedPremove: () => { orig: Key; dest: Key } | undefined;
+  playQueuedPremove: () => boolean; // attempt to play the queued premove now; always clears it
+  cancelQueuedPremove: () => void;
 };
 
 export function keyToCoordinates(key: Key): { x: number; z: number } | null {
@@ -95,6 +102,8 @@ export function setupPieceInteraction({
       side: THREE.DoubleSide,
     }),
   );
+  const premoveFromHighlight = createPremoveHighlightMarker(false);
+  const premoveToHighlight = createPremoveHighlightMarker(true);
   const selectableMoveHighlights = new THREE.Group();
   lastMoveFromHighlight.rotation.x = -Math.PI / 2;
   lastMoveToHighlight.rotation.x = -Math.PI / 2;
@@ -106,6 +115,8 @@ export function setupPieceInteraction({
   lastMoveToHighlight.renderOrder = 9;
   scene.add(lastMoveFromHighlight);
   scene.add(lastMoveToHighlight);
+  scene.add(premoveFromHighlight);
+  scene.add(premoveToHighlight);
   scene.add(selectableMoveHighlights);
 
   let dragState: DragState | null = null;
@@ -114,7 +125,7 @@ export function setupPieceInteraction({
   let activeMouseButton: number | null = null;
   let hoverDisabledForOrbit = false;
   let onMoveAttempt: ((uci: string) => boolean) | undefined = undefined;
-  let onMove: ((from: string, to: string) => void) | undefined = undefined;
+  let onMove: ((from: string, to: string, isPremove: boolean) => void) | undefined = undefined;
   let allowWhiteInteraction = initialAllowWhiteInteraction;
   let allowBlackInteraction = initialAllowBlackInteraction;
   let draggable = true;
@@ -122,6 +133,12 @@ export function setupPieceInteraction({
   let interactionEnabled = true;
   let allowedMoveDests: Map<Key, readonly Key[]> | undefined;
   let showDests = true;
+  let turnColor: Color | undefined;
+  let premoveDests: Map<Key, readonly Key[]> | undefined;
+  let showPremoveDests = true;
+  let queuedPremove: { orig: Key; dest: Key } | undefined;
+  let onPremoveSet: ((orig: Key, dest: Key) => void) | undefined;
+  let onPremoveUnset: (() => void) | undefined;
 
   function getPieceMeshFromObject(object: THREE.Object3D | null): THREE.Mesh | null {
     let current: THREE.Object3D | null = object;
@@ -208,14 +225,39 @@ export function setupPieceInteraction({
     clearMoveDestinationHighlights(selectableMoveHighlights);
   }
 
+  function isPremoveCandidate(piece: THREE.Mesh): boolean {
+    const color: Color = isWhitePiece(piece) ? 'white' : 'black';
+    return turnColor !== undefined && color !== turnColor;
+  }
+
   function showSelectableMoveHighlights(piece: THREE.Mesh, fromSquareOverride?: Key) {
-    updateMoveDestinationHighlights(
-      scene,
-      selectableMoveHighlights,
-      piece,
-      showDests ? allowedMoveDests : undefined,
-      fromSquareOverride,
-    );
+    const isPremove = isPremoveCandidate(piece);
+    const dests = isPremove ? premoveDests : allowedMoveDests;
+    const show = isPremove ? showPremoveDests : showDests;
+    updateMoveDestinationHighlights(scene, selectableMoveHighlights, piece, show ? dests : undefined, fromSquareOverride);
+  }
+
+  function updatePremoveHighlight() {
+    if (!queuedPremove) {
+      premoveFromHighlight.visible = false;
+      premoveToHighlight.visible = false;
+      return;
+    }
+
+    const from = keyToCoordinates(queuedPremove.orig);
+    const to = keyToCoordinates(queuedPremove.dest);
+    if (!from || !to) {
+      premoveFromHighlight.visible = false;
+      premoveToHighlight.visible = false;
+      return;
+    }
+
+    premoveFromHighlight.position.x = from.x;
+    premoveFromHighlight.position.z = from.z;
+    premoveToHighlight.position.x = to.x;
+    premoveToHighlight.position.z = to.z;
+    premoveFromHighlight.visible = true;
+    premoveToHighlight.visible = true;
   }
 
   function setLastMoveHighlights(fromX: number, fromZ: number, toX: number, toZ: number) {
@@ -281,8 +323,24 @@ export function setupPieceInteraction({
     clearSelectableMoveHighlights();
   }
 
+  function isQueuedPremoveOrigin(piece: THREE.Mesh): boolean {
+    if (!queuedPremove) {
+      return false;
+    }
+
+    const square = coordinatesToSquare(getSquareCoordinate(piece.position.x), getSquareCoordinate(piece.position.z));
+    return square === queuedPremove.orig;
+  }
+
   function selectPiece(piece: THREE.Mesh) {
     if (!canInteractWithPiece(piece)) {
+      return;
+    }
+
+    // clicking the piece that owns the queued premove cancels it instead of reselecting
+    if (isQueuedPremoveOrigin(piece)) {
+      cancelQueuedPremove();
+      clearSelection();
       return;
     }
 
@@ -299,6 +357,7 @@ export function setupPieceInteraction({
     fromZ = movingPiece.position.z,
     validateWithCallback = true,
     triggerMoveCallback = true,
+    isPremove = false,
   ): boolean {
     // Validate move through callback if provided
     if (validateWithCallback && onMoveAttempt) {
@@ -322,6 +381,7 @@ export function setupPieceInteraction({
         onMove?.(
           coordinatesToSquare(fromSquareX, fromSquareZ),
           coordinatesToSquare(targetSquareX, targetSquareZ),
+          isPremove,
         );
       }
       return true;
@@ -338,8 +398,38 @@ export function setupPieceInteraction({
       onMove?.(
         coordinatesToSquare(fromSquareX, fromSquareZ),
         coordinatesToSquare(targetSquareX, targetSquareZ),
+        isPremove,
       );
     }
+    return true;
+  }
+
+  // Routes a user-initiated move: plays it immediately if it's the piece's turn,
+  // otherwise queues it as a premove when the destination is a valid premove square.
+  function attemptInteractionMove(
+    piece: THREE.Mesh,
+    targetX: number,
+    targetZ: number,
+    fromX = piece.position.x,
+    fromZ = piece.position.z,
+  ): boolean {
+    if (!isPremoveCandidate(piece)) {
+      return applyMoveOrCapture(piece, targetX, targetZ, fromX, fromZ);
+    }
+
+    const fromSquareX = getSquareCoordinate(fromX);
+    const fromSquareZ = getSquareCoordinate(fromZ);
+    const targetSquareX = getSquareCoordinate(targetX);
+    const targetSquareZ = getSquareCoordinate(targetZ);
+    const orig = coordinatesToSquare(fromSquareX, fromSquareZ);
+    const dest = coordinatesToSquare(targetSquareX, targetSquareZ);
+    if (!premoveDests?.get(orig)?.includes(dest)) {
+      return false;
+    }
+
+    queuedPremove = { orig, dest };
+    updatePremoveHighlight();
+    onPremoveSet?.(orig, dest);
     return true;
   }
 
@@ -347,7 +437,7 @@ export function setupPieceInteraction({
     onMoveAttempt = callback;
   }
 
-  function setMoveCallback(callback: (from: string, to: string) => void) {
+  function setMoveCallback(callback: (from: string, to: string, isPremove: boolean) => void) {
     onMove = callback;
   }
 
@@ -359,6 +449,72 @@ export function setupPieceInteraction({
     } else {
       clearSelectableMoveHighlights();
     }
+  }
+
+  function setTurnColor(color?: Color) {
+    turnColor = color;
+    if (selectedPiece) {
+      showSelectableMoveHighlights(selectedPiece);
+    }
+  }
+
+  function setPremoveDests(dests?: Map<Key, readonly Key[]>, nextShowDests = true) {
+    premoveDests = dests;
+    showPremoveDests = nextShowDests;
+    if (selectedPiece && isPremoveCandidate(selectedPiece)) {
+      showSelectableMoveHighlights(selectedPiece);
+    }
+  }
+
+  function setPremoveCallbacks(callbacks: { onSet?: (orig: Key, dest: Key) => void; onUnset?: () => void }) {
+    onPremoveSet = callbacks.onSet;
+    onPremoveUnset = callbacks.onUnset;
+  }
+
+  function getQueuedPremove() {
+    return queuedPremove;
+  }
+
+  function cancelQueuedPremove() {
+    if (!queuedPremove) {
+      return;
+    }
+
+    queuedPremove = undefined;
+    updatePremoveHighlight();
+    onPremoveUnset?.();
+  }
+
+  function playQueuedPremove(): boolean {
+    if (!queuedPremove) {
+      return false;
+    }
+
+    const { orig, dest } = queuedPremove;
+    queuedPremove = undefined;
+    updatePremoveHighlight();
+
+    const source = parseSquare(orig);
+    const target = parseSquare(dest);
+    if (!source || !target) {
+      return false;
+    }
+
+    const movingPiece = getPieceAtSquare(source.x, source.z);
+    if (!movingPiece) {
+      return false;
+    }
+
+    return applyMoveOrCapture(
+      movingPiece,
+      getSquareCoordinate(target.x),
+      getSquareCoordinate(target.z),
+      source.x,
+      source.z,
+      true,
+      true,
+      true,
+    );
   }
 
   function setInteractionEnabled(enabled: boolean) {
@@ -479,12 +635,15 @@ export function setupPieceInteraction({
 
     if (selectedPiece) {
       if (targetPiece === selectedPiece) {
+        if (isQueuedPremoveOrigin(targetPiece)) {
+          cancelQueuedPremove();
+        }
         clearSelection();
         return;
       }
 
       if (targetPiece && isOppositeColor(selectedPiece, targetPiece)) {
-        if (applyMoveOrCapture(selectedPiece, coords.x, coords.z)) {
+        if (attemptInteractionMove(selectedPiece, coords.x, coords.z)) {
           clearSelection();
           return;
         }
@@ -496,7 +655,7 @@ export function setupPieceInteraction({
       }
 
       if (!targetPiece) {
-        if (applyMoveOrCapture(selectedPiece, coords.x, coords.z)) {
+        if (attemptInteractionMove(selectedPiece, coords.x, coords.z)) {
           clearSelection();
           return;
         }
@@ -521,6 +680,9 @@ export function setupPieceInteraction({
     const targetPiece = getPieceUnderPointer(event);
     if (targetPiece) {
       if (targetPiece === selectedPiece) {
+        if (isQueuedPremoveOrigin(targetPiece)) {
+          cancelQueuedPremove();
+        }
         clearSelection();
         return true;
       }
@@ -528,7 +690,7 @@ export function setupPieceInteraction({
       if (isOppositeColor(selectedPiece, targetPiece)) {
         const targetX = targetPiece.position.x;
         const targetZ = targetPiece.position.z;
-        if (applyMoveOrCapture(selectedPiece, targetX, targetZ)) {
+        if (attemptInteractionMove(selectedPiece, targetX, targetZ)) {
           clearSelection();
           return true;
         }
@@ -549,7 +711,7 @@ export function setupPieceInteraction({
 
     const targetX = getSquareCoordinate(boardPoint.x);
     const targetZ = getSquareCoordinate(boardPoint.z);
-    if (applyMoveOrCapture(selectedPiece, targetX, targetZ)) {
+    if (attemptInteractionMove(selectedPiece, targetX, targetZ)) {
       clearSelection();
     }
 
@@ -610,17 +772,19 @@ export function setupPieceInteraction({
     const hasBoardIntersection = pointerRaycaster.ray.intersectPlane(boardPlane, boardPoint) !== null;
 
     let dropApplied = false;
+    const wasPremoveAttempt = isPremoveCandidate(piece);
     if (hasBoardIntersection) {
       const dropX = boardPoint.x + dragState.pointerOffsetX;
       const dropZ = boardPoint.z + dragState.pointerOffsetZ;
       if (isWithinBoard(dropX, dropZ)) {
         const targetX = getSquareCoordinate(dropX);
         const targetZ = getSquareCoordinate(dropZ);
-        dropApplied = applyMoveOrCapture(piece, targetX, targetZ, startPosition.x, startPosition.z);
+        dropApplied = attemptInteractionMove(piece, targetX, targetZ, startPosition.x, startPosition.z);
       }
     }
 
-    if (!dropApplied) {
+    // a queued premove doesn't move the piece yet, so the drag must always snap back
+    if (!dropApplied || wasPremoveAttempt) {
       piece.position.copy(startPosition);
     }
 
@@ -681,7 +845,7 @@ export function setupPieceInteraction({
         if (isOppositeColor(selectedPiece, piece)) {
           const targetX = piece.position.x;
           const targetZ = piece.position.z;
-          if (applyMoveOrCapture(selectedPiece, targetX, targetZ)) {
+          if (attemptInteractionMove(selectedPiece, targetX, targetZ)) {
             clearSelection();
             return;
           }
@@ -807,6 +971,14 @@ export function setupPieceInteraction({
     activeMouseButton = null;
   });
 
+  // right-click cancels a queued premove, mirroring lichess's board behavior
+  renderer.domElement.addEventListener('contextmenu', event => {
+    event.preventDefault();
+    if (interactionEnabled) {
+      cancelQueuedPremove();
+    }
+  });
+
   controls.addEventListener('start', () => {
     if (!interactionEnabled) {
       return;
@@ -842,5 +1014,11 @@ export function setupPieceInteraction({
     setDraggable,
     setSelectable,
     setInteractionEnabled,
+    setTurnColor,
+    setPremoveDests,
+    setPremoveCallbacks,
+    getQueuedPremove,
+    playQueuedPremove,
+    cancelQueuedPremove,
   };
 }

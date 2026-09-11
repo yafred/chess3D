@@ -54,8 +54,12 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
     },
     dragNewPiece: notImplemented('dragNewPiece'),
     redrawAll: notImplemented('redrawAll'),
-    playPremove: notImplemented('playPremove', false),
-    cancelPremove: notImplemented('cancelPremove'),
+    playPremove() {
+      return scene.playPremove();
+    },
+    cancelPremove() {
+      scene.cancelPremove();
+    },
     playPredrop: notImplemented('playPredrop', false),
     cancelPredrop: notImplemented('cancelPredrop'),
     getKeyAtDomPos: notImplemented('getKeyAtDomPos', undefined),
