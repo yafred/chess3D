@@ -91,8 +91,19 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
   });
 
   function notifyMove(from: string, to: string, isPremove: boolean) {
-    state.events?.move?.(from as any, to as any);
-    state.movable?.events?.after?.(from as any, to as any, { premove: isPremove });
+    const orig = from as Key;
+    const dest = to as Key;
+    const piece = state.pieces.get(orig);
+    const capturedPiece = state.pieces.get(dest);
+    if (piece) {
+      state.pieces.set(dest, piece);
+      state.pieces.delete(orig);
+      state.lastMove = [orig, dest];
+      state.check = undefined;
+    }
+
+    state.events?.move?.(orig, dest, capturedPiece);
+    state.movable?.events?.after?.(orig, dest, { premove: isPremove, captured: capturedPiece });
     state.events?.change?.();
   }
 
