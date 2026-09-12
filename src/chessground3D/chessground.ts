@@ -1,6 +1,7 @@
 import { type Api } from '@lichess-org/chessground/api';
 import { type Config, configure } from '@lichess-org/chessground/config';
 import { defaults, type HeadlessState, type State } from '@lichess-org/chessground/state';
+import { type PiecesDiff } from '@lichess-org/chessground/types';
 import { opposite } from '@lichess-org/chessground/util';
 
 import { createChessScene } from './chessScene';
@@ -56,7 +57,13 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
     move(orig, dest) {
       scene.move(orig, dest);
     },
-    setPieces: notImplemented('setPieces'),
+    setPieces(pieces: PiecesDiff) {
+      for (const [key, piece] of pieces) {
+        if (piece) state.pieces.set(key, piece);
+        else state.pieces.delete(key);
+      }
+      scene.set(state);
+    },
     selectSquare(key, _force): void {
       scene.selectSquare(key);
     },

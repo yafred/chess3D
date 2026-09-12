@@ -93,6 +93,7 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
   function notifyMove(from: string, to: string, isPremove: boolean) {
     state.events?.move?.(from as any, to as any);
     state.movable?.events?.after?.(from as any, to as any, { premove: isPremove });
+    state.events?.change?.();
   }
 
   setupMoveAttemptAdapter(

@@ -847,7 +847,6 @@ export function setupPieceInteraction({
       }
 
       if (!draggable) {
-        event.preventDefault();
         event.stopPropagation();
         clickState = {
           pointerId: event.pointerId,
@@ -860,7 +859,6 @@ export function setupPieceInteraction({
       // If a piece is pinned, clicking another piece should act as a click target,
       // not start a drag on the clicked piece.
       if (selectedPiece && piece !== selectedPiece) {
-        event.preventDefault();
         event.stopPropagation();
 
         if (isOppositeColor(selectedPiece, piece)) {
@@ -876,7 +874,6 @@ export function setupPieceInteraction({
         return;
       }
 
-      event.preventDefault();
       event.stopPropagation();
 
       updatePointerNdc(event);
