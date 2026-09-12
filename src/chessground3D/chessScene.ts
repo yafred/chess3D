@@ -95,7 +95,12 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
     state.movable?.events?.after?.(from as any, to as any, { premove: isPremove });
   }
 
-  setupMoveAttemptAdapter(interactionController, () => state.movable.dests, notifyMove);
+  setupMoveAttemptAdapter(
+    interactionController,
+    () => state.movable.dests,
+    notifyMove,
+    () => state.movable.free ?? false,
+  );
 
   interactionController.setPremoveCallbacks({
     onSet: (orig, dest) => {
@@ -143,6 +148,7 @@ export function createChessScene(sceneRoot: HTMLElement, state: State): ChessSce
     updateCheckHighlight(checkHighlight, s.check, s.highlight.check);
 
     interactionController.setTurnColor(s.turnColor);
+    interactionController.setMovableColor(s.movable.color);
     interactionController.setAllowedMoveDests(s.movable.dests, s.movable.showDests);
     interactionController.setPremoveDests(computePremoveDests(s), s.premovable.showDests);
 

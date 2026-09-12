@@ -50,6 +50,7 @@ export type PieceInteractionController = {
   setSelectable: (enabled: boolean) => void;
   setInteractionEnabled: (enabled: boolean) => void;
   setTurnColor: (color?: Color) => void; // color allowed to move immediately (others queue premoves)
+  setMovableColor: (color?: Color | 'both') => void; // 'both' is never a premove candidate
   setPremoveDests: (dests?: Map<Key, readonly Key[]>, showDests?: boolean) => void;
   setPremoveCallbacks: (callbacks: { onSet?: (orig: Key, dest: Key) => void; onUnset?: () => void }) => void;
   getQueuedPremove: () => { orig: Key; dest: Key } | undefined;
@@ -134,6 +135,7 @@ export function setupPieceInteraction({
   let allowedMoveDests: Map<Key, readonly Key[]> | undefined;
   let showDests = true;
   let turnColor: Color | undefined;
+  let movableColor: Color | 'both' | undefined;
   let premoveDests: Map<Key, readonly Key[]> | undefined;
   let showPremoveDests = true;
   let queuedPremove: { orig: Key; dest: Key } | undefined;
@@ -226,6 +228,9 @@ export function setupPieceInteraction({
   }
 
   function isPremoveCandidate(piece: THREE.Mesh): boolean {
+    if (movableColor === 'both') {
+      return false;
+    }
     const color: Color = isWhitePiece(piece) ? 'white' : 'black';
     return turnColor !== undefined && color !== turnColor;
   }
@@ -462,6 +467,13 @@ export function setupPieceInteraction({
 
   function setTurnColor(color?: Color) {
     turnColor = color;
+    if (selectedPiece) {
+      showSelectableMoveHighlights(selectedPiece);
+    }
+  }
+
+  function setMovableColor(color?: Color | 'both') {
+    movableColor = color;
     if (selectedPiece) {
       showSelectableMoveHighlights(selectedPiece);
     }
@@ -1024,6 +1036,7 @@ export function setupPieceInteraction({
     setSelectable,
     setInteractionEnabled,
     setTurnColor,
+    setMovableColor,
     setPremoveDests,
     setPremoveCallbacks,
     getQueuedPremove,

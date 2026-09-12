@@ -6,6 +6,7 @@ export function setupMoveAttemptAdapter(
   interactionController: PieceInteractionController,
   getAllowedMoveDests: () => Map<Key, readonly Key[]> | undefined,
   onMove?: (from: string, to: string, isPremove: boolean) => void,
+  isFree?: () => boolean,
 ) {
   if (onMove) {
     interactionController.setMoveCallback(onMove);
@@ -16,7 +17,7 @@ export function setupMoveAttemptAdapter(
     const to = uci.slice(2, 4) as Key;
     const allowedMoveDests = getAllowedMoveDests();
 
-    if (allowedMoveDests && !allowedMoveDests.get(from)?.includes(to)) {
+    if (!isFree?.() && allowedMoveDests && !allowedMoveDests.get(from)?.includes(to)) {
       return false;
     }
 

@@ -35,13 +35,14 @@ export function applyInteractionPolicy(
   }
 
   const isWhiteTurn = config.turnColor === 'white';
-  const canMoveWhite = config.movableColor === 'white' || config.movableColor === 'both';
-  const canMoveBlack = config.movableColor === 'black' || config.movableColor === 'both';
+  // 'both' can move regardless of whose turn it is, mirroring chessground's isMovable()
+  const canMoveWhite = config.movableColor === 'both' || (config.movableColor === 'white' && isWhiteTurn);
+  const canMoveBlack = config.movableColor === 'both' || (config.movableColor === 'black' && !isWhiteTurn);
 
   // premoves are only meaningful for a single fixed color (not 'both', which can always move)
   const canPremoveWhite = config.premovableEnabled && config.movableColor === 'white' && !isWhiteTurn;
   const canPremoveBlack = config.premovableEnabled && config.movableColor === 'black' && isWhiteTurn;
 
-  interactionController.setAllowWhiteInteraction((isWhiteTurn && canMoveWhite) || canPremoveWhite);
-  interactionController.setAllowBlackInteraction((!isWhiteTurn && canMoveBlack) || canPremoveBlack);
+  interactionController.setAllowWhiteInteraction(canMoveWhite || canPremoveWhite);
+  interactionController.setAllowBlackInteraction(canMoveBlack || canPremoveBlack);
 }
