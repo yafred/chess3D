@@ -5,6 +5,7 @@ import { type PiecesDiff } from '@lichess-org/chessground/types';
 import { opposite } from '@lichess-org/chessground/util';
 
 import { createChessScene } from './chessScene';
+import { dragNewPiece } from './drag';
 
 export function Chessground(element: HTMLElement, config?: Config): Api {
   function notImplemented(name: string): () => void;
@@ -36,6 +37,8 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
       clear() {},
     }),
   };
+
+  let cancelNewPieceDrag: (() => void) | undefined;
 
   return {
     state: state,
@@ -75,7 +78,10 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
     setAutoShapes(shapes) {
       scene.setAutoShapes(shapes);
     },
-    dragNewPiece: notImplemented('dragNewPiece'),
+    dragNewPiece(piece, event, force) {
+      cancelNewPieceDrag?.();
+      cancelNewPieceDrag = dragNewPiece(state, scene, piece, event, force);
+    },
     redrawAll: notImplemented('redrawAll'),
     playPremove() {
       return scene.playPremove();
@@ -90,6 +96,7 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
     },
 
     destroy() {
+      cancelNewPieceDrag?.();
       scene.destroy();
     },
   };
