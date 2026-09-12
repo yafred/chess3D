@@ -1,6 +1,7 @@
 import { type Api } from '@lichess-org/chessground/api';
 import { type Config, configure } from '@lichess-org/chessground/config';
 import { defaults, type HeadlessState, type State } from '@lichess-org/chessground/state';
+import { opposite } from '@lichess-org/chessground/util';
 
 import { createChessScene } from './chessScene';
 
@@ -46,7 +47,12 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
     getFen() {
       return scene.getFen();
     },
-    toggleOrientation: notImplemented('toggleOrientation'),
+    toggleOrientation() {
+      state.orientation = opposite(state.orientation);
+      state.animation.current = state.draggable.current = state.selected = undefined;
+      scene.selectSquare(null);
+      scene.set(state, false);
+    },
     move(orig, dest) {
       scene.move(orig, dest);
     },
