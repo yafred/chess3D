@@ -22,10 +22,7 @@ import { createControls, getWhiteAzimuthAngle, setControlsOrientation } from './
 import { registerSceneRenderStep } from './systems/renderScheduler.js';
 import { handleResize } from './systems/resize.js';
 
-const SCENE_ASSET_URL =
-  window.location.port === '9663'
-    ? new URL('/assets/scene.glb', window.location.origin).href // use with lila development env
-    : new URL('./public/scene.glb', import.meta.url).href; // use in chess3D
+const SCENE_ASSET_URL = new URL('/assets/scene.glb', window.location.origin).href // hardcoded for lila
 
 export interface ChessScene {
   set(state: State, hasFen?: boolean): void;
