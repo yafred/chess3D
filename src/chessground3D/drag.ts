@@ -18,7 +18,11 @@ export function dragNewPiece(
   const assetUrl = (globalThis as { site?: { asset?: { url(path: string): string } } }).site?.asset?.url;
   if (mainBoard) {
     const cursorUrl = assetUrl?.(`cursors/${piece.color}-${piece.role}.cur`);
-    mainBoard.style.setProperty('cursor', cursorUrl ? `url('${cursorUrl}'), default` : 'grabbing', 'important');
+    mainBoard.style.setProperty(
+      'cursor',
+      cursorUrl ? `url('${cursorUrl}'), default` : 'grabbing',
+      'important',
+    );
   }
   const onMove = (moveEvent: Event) => {
     position = eventPosition(moveEvent as MouchEvent) ?? position;

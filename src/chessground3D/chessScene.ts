@@ -24,7 +24,7 @@ import { handleResize } from './systems/resize.js';
 
 const pieceCodes = new Set(['K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 'r', 'b', 'n', 'p']);
 
-const SCENE_ASSET_URL = new URL('/assets/scene.glb', window.location.origin).href // hardcoded for lila
+const SCENE_ASSET_URL = new URL('/assets/scene.glb', window.location.origin).href; // hardcoded for lila
 
 export interface ChessScene {
   set(state: State, hasFen?: boolean): void;

@@ -74,7 +74,9 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
     cancelMove: notImplemented('cancelMove'),
     stop: notImplemented('stop'),
     explode: notImplemented('explode'),
-    setShapes: notImplemented('setShapes'),
+    setShapes(shapes) {
+      scene.setAutoShapes(shapes);
+    },
     setAutoShapes(shapes) {
       scene.setAutoShapes(shapes);
     },
