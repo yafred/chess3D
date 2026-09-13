@@ -68,3 +68,63 @@ export function createArrowMesh(
   mesh.renderOrder = 12;
   return mesh;
 }
+
+const CUSTOM_SVG_HEIGHT = 0.021;
+
+export function createCustomSvgMesh(
+  x: number,
+  z: number,
+  svgHtml: string,
+  size = 2.0,
+): THREE.Mesh {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  const geometry = new THREE.PlaneGeometry(size, size);
+  geometry.rotateX(-Math.PI / 2);
+
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.set(x, CUSTOM_SVG_HEIGHT, z);
+  mesh.renderOrder = 13;
+
+  // Render a 200x200 viewBox centered on the square [0..100] (spanning [-50..150]),
+  // mapped onto a 2.0x2.0 plane so badges and drop shadows can overlap adjacent squares without clipping.
+  // Translating by (0, 84) shifts elements originally anchored near the top corner (~(91, 8))
+  // down to the bottom corner (~(91, 92)).
+  const fullSvg = svgHtml.trim().startsWith('<svg')
+    ? svgHtml
+    : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-50 -50 200 200" width="512" height="512" style="overflow: visible"><g transform="translate(0, 84)">${svgHtml}</g></svg>`;
+
+  const blob = new Blob([fullSvg], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+
+  img.onload = () => {
+    if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      texture.needsUpdate = true;
+    }
+    URL.revokeObjectURL(url);
+  };
+
+  img.onerror = () => {
+    URL.revokeObjectURL(url);
+  };
+
+  img.src = url;
+
+  return mesh;
+}
