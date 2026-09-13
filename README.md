@@ -1,3 +1,8 @@
+
+# Important
+
+Latest development of src/chessground3D is on https://github.com/yafred/chessground3D
+
 # [chess3D](https://yafred.github.io/chess3D/)
 
 [Play](https://yafred.github.io/chess3D/) on [Lichess](https://lichess.org/) using a 3D model and the Lichess public API.
