@@ -62,8 +62,11 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
     },
     setPieces(pieces: PiecesDiff) {
       for (const [key, piece] of pieces) {
-        if (piece) state.pieces.set(key, piece);
-        else state.pieces.delete(key);
+        if (piece) {
+          state.pieces.set(key, piece);
+        } else {
+          state.pieces.delete(key);
+        }
       }
       scene.set(state);
     },

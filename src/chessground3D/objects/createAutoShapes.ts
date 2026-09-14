@@ -71,12 +71,7 @@ export function createArrowMesh(
 
 const CUSTOM_SVG_HEIGHT = 0.021;
 
-export function createCustomSvgMesh(
-  x: number,
-  z: number,
-  svgHtml: string,
-  size = 2.0,
-): THREE.Mesh {
+export function createCustomSvgMesh(x: number, z: number, svgHtml: string, size = 2.0): THREE.Mesh {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 512;
