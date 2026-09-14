@@ -5,7 +5,7 @@ import { type PiecesDiff } from '@lichess-org/chessground/types';
 import { opposite } from '@lichess-org/chessground/util';
 
 import { createChessScene } from './chessScene';
-import { dragNewPiece } from './drag';
+import { dragNewPiece } from './logic/drag';
 
 export function Chessground(element: HTMLElement, config?: Config): Api {
   function notImplemented(name: string): () => void;

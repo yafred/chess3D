@@ -2,7 +2,7 @@ import { type State } from '@lichess-org/chessground/state';
 import { type MouchEvent, type Piece } from '@lichess-org/chessground/types';
 import { eventPosition } from '@lichess-org/chessground/util';
 
-import { type ChessScene } from './chessScene';
+import { type ChessScene } from '../chessScene';
 
 export function dragNewPiece(
   state: State,
