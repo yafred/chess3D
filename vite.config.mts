@@ -47,12 +47,17 @@ export default defineConfig(({ command }) => ({
         const sourceCandidates = source.endsWith('.js')
           ? [
               requestedSourceModule.replace(/\.js$/, '.ts'),
+              requestedSourceModule.replace(/\.js$/, '.tsx'),
               requestedSourceModule.replace(/[\\/]index\.js$/, '.ts'),
+              requestedSourceModule.replace(/[\\/]index\.js$/, '.tsx'),
             ]
           : [
               `${requestedSourceModule}.ts`,
+              `${requestedSourceModule}.tsx`,
               resolve(requestedSourceModule, 'index.ts'),
+              resolve(requestedSourceModule, 'index.tsx'),
               requestedSourceModule.replace(/[\\/]index$/, '.ts'),
+              requestedSourceModule.replace(/[\\/]index$/, '.tsx'),
             ];
 
         return (
