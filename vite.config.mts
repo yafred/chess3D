@@ -31,7 +31,11 @@ export default defineConfig(({ command }) => ({
         }
 
         const compiledModule = resolve(dirname(importer), source);
-        if (existsSync(compiledModule) || existsSync(`${compiledModule}.js`)) {
+        if (
+          existsSync(compiledModule) ||
+          existsSync(`${compiledModule}.js`) ||
+          existsSync(resolve(compiledModule, 'index.js'))
+        ) {
           return null;
         }
 
