@@ -1,13 +1,17 @@
+import { createRequire } from 'node:module';
 import { cpSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { defineConfig } from 'vite';
+
+const require = createRequire(import.meta.url);
+const chessground3DPackageRoot = dirname(dirname(require.resolve('chessground3D')));
 
 export default defineConfig(({ command }) => ({
   // Keep assets relative so the app can be hosted from a subpath (build only).
   base: command === 'build' ? './' : '/',
   resolve: {
     alias: {
-      chessground3D: resolve('node_modules/chessground3D/src/chessground3D.ts'),
+      chessground3D: resolve(chessground3DPackageRoot, 'src/chessground3D.ts'),
     },
   },
   plugins: [
