@@ -1,8 +1,20 @@
 import { defineConfig } from 'vite';
+import { cpSync, mkdirSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 
 export default defineConfig(({ command }) => ({
   // Keep assets relative so the app can be hosted from a subpath (build only).
   base: command === 'build' ? './' : '/',
+  plugins: [
+    {
+      name: 'copy-chessground3d-scene',
+      buildStart() {
+        const destination = resolve('public/assets/scene.glb');
+        mkdirSync(dirname(destination), { recursive: true });
+        cpSync(resolve('node_modules/chessground3D/assets/scene.glb'), destination);
+      },
+    },
+  ],
   css: {
     preprocessorOptions: {
       scss: {

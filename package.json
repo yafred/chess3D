@@ -6,6 +6,7 @@
   "dependencies": {
     "@bity/oauth2-auth-code-pkce": "^2.13.0",
     "@lichess-org/chessground": "^10.1.1",
+    "chessground3D": "github:yafred/chessground3D",
     "@types/node": "^26.2.0",
     "bootstrap": "^5.3.8",
     "chessops": "^0.15.1",
