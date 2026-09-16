@@ -1,20 +1,39 @@
 import { createRequire } from 'node:module';
-import { cpSync, mkdirSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { cpSync, existsSync, mkdirSync } from 'node:fs';
+import { dirname, relative, resolve } from 'node:path';
 import { defineConfig } from 'vite';
 
 const require = createRequire(import.meta.url);
 const chessground3DPackageRoot = dirname(dirname(require.resolve('chessground3D')));
+const chessground3DDistRoot = resolve(chessground3DPackageRoot, 'dist');
+const chessground3DSrcRoot = resolve(chessground3DPackageRoot, 'src');
 
 export default defineConfig(({ command }) => ({
   // Keep assets relative so the app can be hosted from a subpath (build only).
   base: command === 'build' ? './' : '/',
-  resolve: {
-    alias: {
-      chessground3D: resolve(chessground3DPackageRoot, 'src/chessground3D.ts'),
-    },
-  },
   plugins: [
+    {
+      name: 'resolve-chessground3d-missing-dist-modules',
+      enforce: 'pre',
+      resolveId(source, importer) {
+        if (!importer?.startsWith(chessground3DDistRoot) || !source.startsWith('.')) {
+          return null;
+        }
+
+        const compiledModule = resolve(dirname(importer), source);
+        if (existsSync(compiledModule) || existsSync(`${compiledModule}.js`)) {
+          return null;
+        }
+
+        const sourceRelativePath = relative(chessground3DDistRoot, compiledModule);
+        const sourceModule = resolve(
+          chessground3DSrcRoot,
+          source.endsWith('.js') ? sourceRelativePath.replace(/\.js$/, '.ts') : `${sourceRelativePath}.ts`,
+        );
+
+        return existsSync(sourceModule) ? sourceModule : null;
+      },
+    },
     {
       name: 'copy-chessground3d-scene',
       buildStart() {
