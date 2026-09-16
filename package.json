@@ -1,7 +1,7 @@
 {
   "name": "chess3d",
   "private": true,
-  "packageManager": "pnpm@11.18.0",
+  "packageManager": "pnpm@11.22.0",
   "license": "MIT",
   "dependencies": {
     "@bity/oauth2-auth-code-pkce": "^2.13.0",
