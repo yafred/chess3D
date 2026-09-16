@@ -7,7 +7,6 @@
     "@bity/oauth2-auth-code-pkce": "^2.13.0",
     "@lichess-org/chessground": "^10.1.1",
     "chessground3D": "github:yafred/chessground3D",
-    "@types/node": "^26.2.0",
     "bootstrap": "^5.3.8",
     "chessops": "^0.15.1",
     "page": "^1.11.6",
@@ -17,6 +16,7 @@
   "devDependencies": {
     "@types/page": "^1.11.9",
     "@types/three": "^0.185.4",
+    "@types/node": "^26.2.0",
     "http-server": "^14.1.1",
     "oxfmt": "^0.64.0",
     "oxlint": "^1.79.0",

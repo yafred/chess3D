@@ -14,9 +14,6 @@ importers:
       '@lichess-org/chessground':
         specifier: ^10.1.1
         version: 10.1.1
-      '@types/node':
-        specifier: ^26.2.0
-        version: 26.2.0
       bootstrap:
         specifier: ^5.3.8
         version: 5.3.8(@popperjs/core@2.11.8)
@@ -36,6 +33,9 @@ importers:
         specifier: ^0.185.1
         version: 0.185.1
     devDependencies:
+      '@types/node':
+        specifier: ^26.2.0
+        version: 26.2.0
       '@types/page':
         specifier: ^1.11.9
         version: 1.11.9
