@@ -2,7 +2,7 @@ name: Publish the Lichess API Demo app
 on:
   push:
     branches:
-      - master
+      - use-chessground3D
 
   workflow_dispatch:
 permissions:
