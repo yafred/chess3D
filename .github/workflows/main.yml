@@ -25,6 +25,11 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+      - name: Upgrade corepack and activate pnpm
+        run: |
+          npm install --global corepack@latest
+          corepack enable
+          corepack prepare pnpm@11.22.0 --activate
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build
       - uses: actions/configure-pages@v6
