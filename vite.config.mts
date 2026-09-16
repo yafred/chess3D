@@ -5,6 +5,11 @@ import { defineConfig } from 'vite';
 export default defineConfig(({ command }) => ({
   // Keep assets relative so the app can be hosted from a subpath (build only).
   base: command === 'build' ? './' : '/',
+  resolve: {
+    alias: {
+      chessground3D: resolve('node_modules/chessground3D/src/chessground3D.ts'),
+    },
+  },
   plugins: [
     {
       name: 'copy-chessground3d-scene',
