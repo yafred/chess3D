@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite';
 import { cpSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { defineConfig } from 'vite';
 
 export default defineConfig(({ command }) => ({
   // Keep assets relative so the app can be hosted from a subpath (build only).
