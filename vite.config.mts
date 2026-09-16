@@ -1,8 +1,41 @@
+import { cpSync, mkdirSync, readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { defineConfig } from 'vite';
 
 export default defineConfig(({ command }) => ({
   // Keep assets relative so the app can be hosted from a subpath (build only).
   base: command === 'build' ? './' : '/',
+  plugins: [
+    {
+      name: 'copy-chessground3d-scene',
+      configureServer(server) {
+        server.middlewares.use('/assets/scene.glb', (_request, response, next) => {
+          try {
+            response.setHeader('Content-Type', 'model/gltf-binary');
+            response.end(readFileSync(resolve('node_modules/chessground3D/assets/scene.glb')));
+          } catch (error) {
+            next(error);
+          }
+        });
+      },
+      writeBundle() {
+        const destination = resolve('dist/assets/scene.glb');
+        mkdirSync(dirname(destination), { recursive: true });
+        cpSync(resolve('node_modules/chessground3D/assets/scene.glb'), destination);
+      },
+    },
+    {
+      name: 'fix-chessground3d-drag-import',
+      resolveId(source, importer) {
+        if (
+          source === './logic/drag' &&
+          importer?.endsWith('/node_modules/chessground3D/dist/chessground3D.js')
+        ) {
+          return this.resolve('./logic/drag.js', importer, { skipSelf: true });
+        }
+      },
+    },
+  ],
   css: {
     preprocessorOptions: {
       scss: {

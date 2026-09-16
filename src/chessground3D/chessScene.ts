@@ -16,7 +16,7 @@ import { createControls, getWhiteAzimuthAngle, setControlsOrientation } from './
 import { registerSceneRenderStep } from './systems/renderScheduler.js';
 import { handleResize } from './systems/resize.js';
 
-const SCENE_ASSET_URL = new URL('./public/scene.glb', import.meta.url).href;
+const SCENE_ASSET_URL = new URL('assets/scene.glb', import.meta.env.BASE_URL).href;
 const DEFAULT_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 
 type ChessColor = 'white' | 'black';
