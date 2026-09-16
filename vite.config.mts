@@ -51,6 +51,7 @@ export default defineConfig(({ command }) => ({
             ]
           : [
               `${requestedSourceModule}.ts`,
+              resolve(requestedSourceModule, 'index.ts'),
               requestedSourceModule.replace(/[\\/]index$/, '.ts'),
             ];
 
