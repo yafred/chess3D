@@ -30,13 +30,26 @@ export default defineConfig(({ command }) => ({
           return null;
         }
 
-        const sourceRelativePath = relative(chessground3DDistRoot, compiledModule);
-        const sourceModule = resolve(
+        const requestedSourceModule = resolve(
           chessground3DSrcRoot,
-          source.endsWith('.js') ? sourceRelativePath.replace(/\.js$/, '.ts') : `${sourceRelativePath}.ts`,
+          relative(chessground3DDistRoot, dirname(importer)),
+          source,
         );
+        const sourceCandidates = source.endsWith('.js')
+          ? [
+              requestedSourceModule.replace(/\.js$/, '.ts'),
+              requestedSourceModule.replace(/[\\/]index\.js$/, '.ts'),
+            ]
+          : [
+              `${requestedSourceModule}.ts`,
+              requestedSourceModule.replace(/[\\/]index$/, '.ts'),
+            ];
 
-        return isWithinDirectory(sourceModule, chessground3DSrcRoot) && existsSync(sourceModule) ? sourceModule : null;
+        return (
+          sourceCandidates.find(
+            sourceModule => isWithinDirectory(sourceModule, chessground3DSrcRoot) && existsSync(sourceModule),
+          ) ?? null
+        );
       },
     },
     {
