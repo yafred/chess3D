@@ -24,6 +24,17 @@ export default defineConfig(({ command }) => ({
         cpSync(resolve('node_modules/chessground3D/assets/scene.glb'), destination);
       },
     },
+    {
+      name: 'fix-chessground3d-drag-import',
+      resolveId(source, importer) {
+        if (
+          source === './logic/drag' &&
+          importer?.endsWith('/node_modules/chessground3D/dist/chessground3D.js')
+        ) {
+          return this.resolve('./logic/drag.js', importer, { skipSelf: true });
+        }
+      },
+    },
   ],
   css: {
     preprocessorOptions: {
