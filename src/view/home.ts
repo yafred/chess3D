@@ -1,6 +1,6 @@
+import { Chessground } from 'chessground3D';
 import { h } from 'snabbdom';
 
-import { Chessground } from '../chessground3D/chessground';
 import { type Ctrl } from '../ctrl';
 import { type Game, type Renderer } from '../interfaces';
 import type OngoingGames from '../ongoingGames';

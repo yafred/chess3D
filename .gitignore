@@ -1,3 +1,5 @@
 node_modules/
 package-lock.json
 dist/
+public/scene.glb
+public/assets/scene.glb
