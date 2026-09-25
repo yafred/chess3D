@@ -5,10 +5,10 @@
   "license": "MIT",
   "dependencies": {
     "@bity/oauth2-auth-code-pkce": "^2.13.0",
-    "@lichess-org/chessground": "^10.1.1",
-    "chessground3D": "github:yafred/chessground3D",
-    "@types/node": "^26.2.0",
+    "@lichess-org/chessground": "^10.2.0",
+    "@types/node": "^26.6.2",
     "bootstrap": "^5.3.8",
+    "chessground3D": "github:yafred/chessground3D",
     "chessops": "^0.15.1",
     "page": "^1.11.6",
     "snabbdom": "^3.6.4",
@@ -19,11 +19,11 @@
     "@types/three": "^0.185.4",
     "http-server": "^14.1.1",
     "oxfmt": "^0.64.0",
-    "oxlint": "^1.79.0",
+    "oxlint": "^1.85.0",
     "oxlint-tsgolint": "7.0.2001",
-    "sass": "^1.102.0",
+    "sass": "^1.105.0",
     "typescript": "^7.0.2",
-    "vite": "^8.2.1"
+    "vite": "^8.3.1"
   },
   "scripts": {
     "build": "vite build",
