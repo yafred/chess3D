@@ -40,8 +40,8 @@ importers:
         specifier: ^0.185.4
         version: 0.185.4
       chessground3D:
-        specifier: workspace:../chessground3D
-        version: link:../chessground3D
+        specifier: github:yafred/chessground3D
+        version: https://codeload.github.com/yafred/chessground3D/tar.gz/3c97fd2eac185a551c057be8eabd8e6bf2b33cf1
       http-server:
         specifier: ^14.1.1
         version: 14.1.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
@@ -735,6 +735,11 @@ packages:
   chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
     engines: {node: '>=10'}
+
+  chessground3D@https://codeload.github.com/yafred/chessground3D/tar.gz/3c97fd2eac185a551c057be8eabd8e6bf2b33cf1:
+    resolution: {gitHosted: true, tarball: https://codeload.github.com/yafred/chessground3D/tar.gz/3c97fd2eac185a551c057be8eabd8e6bf2b33cf1}
+    version: 0.1.0
+    engines: {node: '>=24', pnpm: '>=12'}
 
   chessops@0.15.1:
     resolution: {integrity: sha512-hQDwv90AFkrPEsRJBebh3ZE+xDga25TCCv4lavNT2plZmd33UKNFYaZsE+7rafMbnBRrDEWUVsSYFqY3qCIGZw==}
@@ -1573,6 +1578,10 @@ snapshots:
     dependencies:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
+
+  chessground3D@https://codeload.github.com/yafred/chessground3D/tar.gz/3c97fd2eac185a551c057be8eabd8e6bf2b33cf1:
+    dependencies:
+      three: 0.185.1
 
   chessops@0.15.1:
     dependencies:

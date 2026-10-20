@@ -4,13 +4,16 @@ import { h, type VNode } from 'snabbdom';
 import { Chessground } from 'chessground3D';
 import { type BoardCtrl } from '../game';
 
+// scene.glb is copied to assets/ by the vite plugin (see vite.config.mts)
+const sceneUrl = new URL(`${import.meta.env.BASE_URL}assets/scene.glb`, document.baseURI).href;
+
 export const renderBoard = (ctrl: BoardCtrl) =>
   h(
     'div.game-page__board',
     h('div.cg-wrap', {
       hook: {
         insert(vnode) {
-          ctrl.setGround(Chessground(vnode.elm as HTMLElement, ctrl.chessgroundConfig()));
+          ctrl.setGround(Chessground(vnode.elm as HTMLElement, ctrl.chessgroundConfig(), sceneUrl));
         },
       },
     }),
