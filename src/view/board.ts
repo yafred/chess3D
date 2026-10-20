@@ -1,7 +1,7 @@
+import { Chessground } from 'chessground3D';
 import { type Color } from 'chessops';
 import { h, type VNode } from 'snabbdom';
 
-import { Chessground } from 'chessground3D';
 import { type BoardCtrl } from '../game';
 
 // scene.glb is copied to assets/ by the vite plugin (see vite.config.mts)

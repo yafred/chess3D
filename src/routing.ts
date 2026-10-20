@@ -3,7 +3,6 @@ import page from 'page';
 import { type Ctrl } from './ctrl';
 
 export default function Routing(ctrl: Ctrl) {
-
   // force 3D
   localStorage.setItem('chessground3d', 'true');
 
