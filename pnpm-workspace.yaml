@@ -1,6 +1,6 @@
 allowBuilds:
   '@parcel/watcher': false
-  chessground3D@https://codeload.github.com/yafred/chessground3D/tar.gz/21329385222b440150b393b5e55bae07b56272a6: true
+  chessground3D@https://codeload.github.com/yafred/chessground3D/tar.gz/81f7b748b54c1512d876abcd98ff0efa5d75caa7: true
 minimumReleaseAgeExclude:
   - '@oxfmt/binding-android-arm-eabi@0.64.0'
   - '@oxfmt/binding-android-arm64@0.64.0'
