@@ -16,7 +16,7 @@
   "devDependencies": {
     "@types/page": "^1.11.9",
     "@types/three": "^0.185.4",
-    "chessground3D": "github:yafred/chessground3D#81f7b748b54c1512d876abcd98ff0efa5d75caa7",
+    "chessground3D": "github:yafred/chessground3D#7f2133403b20be4b1d183215d5582071fe8f6961",
     "http-server": "^14.1.1",
     "oxfmt": "^0.64.0",
     "oxlint": "^1.86.0",
